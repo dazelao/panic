@@ -7,6 +7,7 @@ import AddParticipantModal from '@/components/AddParticipantModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { League, LeagueStatus } from '@/types/league';
 import { useEffect, useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 
 function LeagueStatusBadge({ status }: { status: string }) {
   const labels: Record<string, string> = {
@@ -48,7 +49,8 @@ const statusOrder: { [key: string]: number } = {
 };
 
 export default function LeaguesPage() {
-  const { token } = useAuth();
+  const router = useRouter();
+  const { user, token } = useAuth();
   const [leagues, setLeagues] = useState<League[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -91,6 +93,8 @@ export default function LeaguesPage() {
     });
   }, [leagues, statusFilter]);
 
+  const isAdmin = user?.role === 'ADMIN';
+
   if (!mounted) {
     return null;
   }
@@ -111,12 +115,14 @@ export default function LeaguesPage() {
               <option value="ACTIVE">Активна</option>
               <option value="FINISHED">Завершена</option>
             </select>
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-            >
-              Створити лігу
-            </button>
+            {isAdmin && (
+              <button
+                onClick={() => router.push('/league/create')}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                Створити лігу
+              </button>
+            )}
           </div>
         </div>
 

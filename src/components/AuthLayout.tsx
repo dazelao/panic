@@ -46,6 +46,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
   const navigation = [
     { name: 'Профіль', href: '/profile' },
     { name: 'Ліги', href: '/leagues' },
+    { name: 'Швейцарка', href: '/swiss' },
     ...(user?.role === 'ADMIN' ? [
       { 
         name: 'Управління групами та атрибутами',
