@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthLayout from '@/components/AuthLayout';
+import { ApiService } from '@/config/apiService';
 
 interface Tournament {
   id: number;
@@ -43,14 +44,9 @@ export default function PattonPage() {
     }
 
     const fetchTournaments = async () => {
+      if (!token) return;
       try {
-        const response = await fetch('http://localhost:8080/api/swiss/tournaments', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (!response.ok) throw new Error('Failed to fetch tournaments');
-        const data = await response.json();
+        const data = await ApiService.swiss.getTournaments(token);
         setTournaments(data);
       } catch (err) {
         setError('Failed to load tournaments');
@@ -64,27 +60,18 @@ export default function PattonPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!token) return;
     setFormError('');
     setPattonGroups(null);
 
     try {
-      const response = await fetch('http://localhost:8080/api/patton/create-groups-dto', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          tournamentId: Number(formData.tournamentId),
-          topPlaces: Number(formData.topPlaces),
-          groupSize: Number(formData.groupSize),
-          theme: formData.theme,
-          sortType: formData.sortType
-        })
+      const data = await ApiService.patton.createGroupsDto(token, {
+        tournamentId: Number(formData.tournamentId),
+        topPlaces: Number(formData.topPlaces),
+        groupSize: Number(formData.groupSize),
+        theme: formData.theme,
+        sortType: formData.sortType
       });
-
-      if (!response.ok) throw new Error('Failed to create groups');
-      const data = await response.json();
       setPattonGroups(data);
     } catch (err) {
       setFormError('Failed to create groups');

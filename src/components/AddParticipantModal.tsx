@@ -1,6 +1,7 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Autocomplete, CircularProgress, List, ListItem, ListItemText, Typography } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { getUsers, User, addParticipant, unregisterSelf } from '@/api/leagues';
+import { ApiService } from '@/config/apiService';
 
 interface Participant {
   id: number;
@@ -36,10 +37,7 @@ export default function AddParticipantModal({ open, onClose, leagueId, token, on
   };
 
   const fetchParticipants = () => {
-    fetch(`http://localhost:8080/api/leagues/${leagueId}/participants`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    ApiService.leagues.getParticipants(token, Number(leagueId))
       .then(data => {
         console.log('Fetched participants:', data);
         setParticipants(data);

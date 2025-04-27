@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthLayout from '@/components/AuthLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { ApiService } from '@/config/apiService';
 
 type TournamentType = 'league' | 'swiss';
 
@@ -29,8 +30,8 @@ export default function PatternPage() {
       
       try {
         const endpoint = selectedType === 'league' 
-          ? 'http://localhost:8080/api/league/tournaments'
-          : 'http://localhost:8080/api/swiss/tournaments';
+          ? 'http://31.202.133.123:8080/api/league/tournaments'
+          : 'http://31.202.133.123:8080/api/swiss/tournaments';
 
         const response = await fetch(endpoint, {
           headers: {

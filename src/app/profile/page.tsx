@@ -2,6 +2,7 @@
 
 import AuthLayout from '@/components/AuthLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { apiRequest } from '@/config/apiService';
 import { useEffect, useState } from 'react';
 
 export default function ProfilePage() {
@@ -24,19 +25,10 @@ export default function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8080/api/auth/update', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        setIsEditing(false);
-        window.location.reload();
-      }
+      const token = localStorage.getItem('token') || '';
+      await apiRequest('/auth/update', 'PUT', token, formData);
+      setIsEditing(false);
+      window.location.reload();
     } catch (error) {
       console.error('Error updating profile:', error);
     }

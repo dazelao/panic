@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthLayout from '@/components/AuthLayout';
+import { ApiService } from '@/config/apiService';
 
 interface User {
   id: number;
@@ -30,13 +31,8 @@ export default function AttributesManagementPage() {
 
     const fetchUsers = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/users', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (!response.ok) throw new Error('Failed to fetch users');
-        const data = await response.json();
+        if (!token) return;
+        const data = await ApiService.users.getAll(token);
         setAllUsers(data);
         setFilteredUsers(data);
       } catch (err) {
@@ -75,25 +71,12 @@ export default function AttributesManagementPage() {
   }, [allUsers, usernameFilter, attributeKeyFilter, attributeValueFilter]);
 
   const handleAttributeUpdate = async (userId: number, key: string, value: string) => {
+    if (!token) return;
     try {
-      const response = await fetch(`http://localhost:8080/api/users/${userId}/attributes`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ key, value })
-      });
-
-      if (!response.ok) throw new Error('Failed to update attribute');
-
+      await ApiService.users.updateAttribute(token, userId, key, value);
+      
       // Refresh users list
-      const updatedResponse = await fetch('http://localhost:8080/api/users', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const updatedData = await updatedResponse.json();
+      const updatedData = await ApiService.users.getAll(token);
       setFilteredUsers(updatedData);
     } catch (err) {
       setError('Failed to update attribute');
@@ -101,23 +84,12 @@ export default function AttributesManagementPage() {
   };
 
   const handleAttributeDelete = async (userId: number, key: string) => {
+    if (!token) return;
     try {
-      const response = await fetch(`http://localhost:8080/api/users/${userId}/attributes/${key}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) throw new Error('Failed to delete attribute');
-
+      await ApiService.users.deleteAttribute(token, userId, key);
+      
       // Refresh users list
-      const updatedResponse = await fetch('http://localhost:8080/api/users', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const updatedData = await updatedResponse.json();
+      const updatedData = await ApiService.users.getAll(token);
       setFilteredUsers(updatedData);
     } catch (err) {
       setError('Failed to delete attribute');

@@ -10,6 +10,7 @@ import { Snackbar } from '@mui/material';
 import EditMatchesModal from '@/components/EditMatchesModal';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Autocomplete } from '@mui/material';
 import BulkAddParticipantsModal from '@/components/BulkAddParticipantsModal';
+import { ApiService } from '@/config/apiService';
 
 interface Participant {
   id: number;
@@ -90,10 +91,8 @@ export default function LeagueDetailPage() {
   const fetchParticipants = () => {
     if (!token) return;
     setParticipantsLoading(true);
-    fetch(`http://localhost:8080/api/leagues/${id}/participants`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    
+    ApiService.leagues.getParticipants(token, Number(id))
       .then(setParticipants)
       .catch(() => setParticipants([]))
       .finally(() => setParticipantsLoading(false));

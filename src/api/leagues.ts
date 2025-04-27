@@ -1,6 +1,7 @@
 import { League, LeagueStatus, CreateLeagueRequest } from '@/types/league';
+import { API_BASE_URL } from '@/config/api';
 
-const API_URL = 'http://localhost:8080/api';
+const API_URL = API_BASE_URL;
 
 export const getLeagues = async (token: string, status?: LeagueStatus): Promise<League[]> => {
   const url = new URL(`${API_URL}/leagues`);
@@ -162,7 +163,7 @@ export interface LeagueMatch {
 }
 
 export const getLeagueMatches = async (token: string, leagueId: number): Promise<LeagueMatch[]> => {
-  const response = await fetch(`http://localhost:8080/api/league-matches/league/${leagueId}`, {
+  const response = await fetch(`${API_URL}/league-matches/league/${leagueId}`, {
     headers: {
       'Authorization': `Bearer ${token}`
     }

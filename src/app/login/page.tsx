@@ -14,6 +14,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
     const formData = new FormData(e.currentTarget);
     
     const data: LoginRequest = {
@@ -22,11 +23,20 @@ export default function LoginPage() {
     };
 
     try {
+      console.log('Submitting login form with username:', data.username);
       const response = await login(data);
+      console.log('Login successful, setting auth');
       setAuth(response);
       router.push('/profile');
-    } catch (err) {
-      setError('Не вдалося увійти. Перевірте логін та пароль.');
+    } catch (err: any) {
+      console.error('Login error in component:', err);
+      if (err.message && err.message.includes('Login failed:')) {
+        setError(err.message.includes('403') 
+          ? 'Невірний логін або пароль. Перевірте введені дані.' 
+          : `Помилка входу: ${err.message}`);
+      } else {
+        setError('Не вдалося увійти. Перевірте логін та пароль або спробуйте пізніше.');
+      }
     }
   };
 

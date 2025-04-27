@@ -4,6 +4,7 @@ import AuthLayout from '@/components/AuthLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { ApiService } from '@/config/apiService';
 
 interface Tournament {
   id: number;
@@ -120,17 +121,11 @@ export default function TournamentsPage() {
   }, [tournaments, statusFilter]);
 
   const fetchAllUsers = async () => {
+    if (!token) return;
     setLoadingUsers(true);
     try {
-      const response = await fetch('http://localhost:8080/api/users', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setAllUsers(data);
-      }
+      const data = await ApiService.users.getAll(token);
+      setAllUsers(data);
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -139,49 +134,25 @@ export default function TournamentsPage() {
   };
 
   const handleAddParticipant = async (userId: number) => {
-    if (!selectedTournament) return;
+    if (!selectedTournament || !token) return;
 
     try {
-      const response = await fetch(`http://localhost:8080/api/tournament/${selectedTournament.id}/participant`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ userId })
-      });
-
-      if (response.ok) {
-        // Обновляем список участников
-        const participantsResponse = await fetch(`http://localhost:8080/api/tournament/${selectedTournament.id}/participants`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (participantsResponse.ok) {
-          const data = await participantsResponse.json();
-          setParticipants(data);
-        }
-      }
+      await ApiService.tournaments.addParticipant(token, selectedTournament.id, userId);
+      
+      // Обновляем список участников
+      const data = await ApiService.tournaments.getParticipants(token, selectedTournament.id);
+      setParticipants(data);
     } catch (error) {
       console.error('Error adding participant:', error);
     }
   };
 
   const handleRemoveParticipant = async (userId: number) => {
-    if (!selectedTournament) return;
+    if (!selectedTournament || !token) return;
 
     try {
-      const response = await fetch(`http://localhost:8080/api/tournament/${selectedTournament.id}/participant/${userId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        setParticipants(prev => prev.filter(p => p.id !== userId));
-      }
+      await ApiService.tournaments.removeParticipant(token, selectedTournament.id, userId);
+      setParticipants(prev => prev.filter(p => p.id !== userId));
     } catch (error) {
       console.error('Error removing participant:', error);
     }
@@ -192,37 +163,20 @@ export default function TournamentsPage() {
   };
 
   const handleRegistration = async () => {
-    if (!selectedTournament || !user || registering) return;
+    if (!selectedTournament || !user || registering || !token) return;
 
     setRegistering(true);
     try {
       const isCurrentParticipant = isParticipant(participants);
-      const method = isCurrentParticipant ? 'DELETE' : 'POST';
-      const url = isCurrentParticipant 
-        ? `http://localhost:8080/api/tournament/${selectedTournament.id}/participant/${user.id}`
-        : `http://localhost:8080/api/tournament/${selectedTournament.id}/participant`;
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        ...((!isCurrentParticipant) && { body: JSON.stringify({ userId: user.id }) })
-      });
-
-      if (response.ok) {
-        // Обновляем список участников
-        const participantsResponse = await fetch(`http://localhost:8080/api/tournament/${selectedTournament.id}/participants`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (participantsResponse.ok) {
-          const data = await participantsResponse.json();
-          setParticipants(data);
-        }
+      if (isCurrentParticipant) {
+        await ApiService.tournaments.removeParticipant(token, selectedTournament.id, user.id);
+      } else {
+        await ApiService.tournaments.addParticipant(token, selectedTournament.id, user.id);
       }
+      
+      // Обновляем список участников
+      const data = await ApiService.tournaments.getParticipants(token, selectedTournament.id);
+      setParticipants(data);
     } catch (error) {
       console.error('Error during registration:', error);
     } finally {
@@ -238,26 +192,15 @@ export default function TournamentsPage() {
   };
 
   const handleStartTournament = async () => {
-    if (!selectedTournament || startingTournament) return;
+    if (!selectedTournament || startingTournament || !token) return;
 
     setStartingTournament(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/tournament/start/${selectedTournament.id}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const updatedTournament = await response.json();
-        // Обновляем турнир в списке
-        setTournaments(prev => prev.map(t => 
-          t.id === updatedTournament.id ? updatedTournament : t
-        ));
-        // Обновляем выбранный турнир
-        setSelectedTournament(updatedTournament);
-      }
+      const updatedTournament = await ApiService.tournaments.start(token, selectedTournament.id);
+      setTournaments(prev => prev.map(t => 
+        t.id === updatedTournament.id ? updatedTournament : t
+      ));
+      setSelectedTournament(updatedTournament);
     } catch (error) {
       console.error('Error starting tournament:', error);
     } finally {
@@ -266,26 +209,23 @@ export default function TournamentsPage() {
   };
 
   const handleNextRound = async () => {
-    if (!selectedTournament || generatingNextRound) return;
+    if (!selectedTournament || generatingNextRound || !token) return;
 
     setGeneratingNextRound(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/tournament/next-round/${selectedTournament.id}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const updatedTournament = await ApiService.tournaments.nextRound(token, selectedTournament.id);
+      setTournaments(prev => prev.map(t => 
+        t.id === updatedTournament.id ? updatedTournament : t
+      ));
+      setSelectedTournament(updatedTournament);
 
-      if (response.ok) {
-        const updatedTournament = await response.json();
-        // Обновляем турнир в списке
-        setTournaments(prev => prev.map(t => 
-          t.id === updatedTournament.id ? updatedTournament : t
-        ));
-        // Обновляем выбранный турнир
-        setSelectedTournament(updatedTournament);
-      }
+      // Обновляем список матчей
+      const matchesData = await ApiService.matches.getTournamentMatches(token, selectedTournament.id);
+      setMatches(matchesData);
+
+      // Фильтруем активные матчи
+      const activeOnes = matchesData.filter((match: Match) => match.matchStatus !== 'завершен');
+      setActiveMatches(activeOnes);
     } catch (error) {
       console.error('Error generating next round:', error);
     } finally {
@@ -294,29 +234,18 @@ export default function TournamentsPage() {
   };
 
   const handleCreateTournament = async () => {
-    if (creatingTournament) return;
+    if (creatingTournament || !token) return;
 
     setCreatingTournament(true);
     try {
-      const response = await fetch('http://localhost:8080/api/tournament', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(createForm)
+      const newTournament = await ApiService.tournaments.create(token, createForm);
+      setTournaments(prev => [...prev, newTournament]);
+      setShowCreateModal(false);
+      setCreateForm({
+        name: '',
+        description: '',
+        maxParticipants: 16
       });
-
-      if (response.ok) {
-        const newTournament = await response.json();
-        setTournaments(prev => [...prev, newTournament]);
-        setShowCreateModal(false);
-        setCreateForm({
-          name: '',
-          description: '',
-          maxParticipants: 16
-        });
-      }
     } catch (error) {
       console.error('Error creating tournament:', error);
     } finally {
@@ -325,24 +254,15 @@ export default function TournamentsPage() {
   };
 
   const handleFinishTournament = async () => {
-    if (!selectedTournament || finishingTournament) return;
+    if (!selectedTournament || finishingTournament || !token) return;
 
     setFinishingTournament(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/tournament/finish/${selectedTournament.id}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const updatedTournament = await response.json();
-        setTournaments(prev => prev.map(t => 
-          t.id === updatedTournament.id ? updatedTournament : t
-        ));
-        setSelectedTournament(updatedTournament);
-      }
+      const updatedTournament = await ApiService.tournaments.finish(token, selectedTournament.id);
+      setTournaments(prev => prev.map(t => 
+        t.id === updatedTournament.id ? updatedTournament : t
+      ));
+      setSelectedTournament(updatedTournament);
     } catch (error) {
       console.error('Error finishing tournament:', error);
     } finally {
@@ -351,7 +271,7 @@ export default function TournamentsPage() {
   };
 
   const handleUpdateMatchResult = async (matchId: number) => {
-    if (!selectedTournament || !user) return;
+    if (!selectedTournament || !user || !token) return;
     
     // Проверка на равный счет
     if (matchResult.goalsUser1 === matchResult.goalsUser2) {
@@ -360,38 +280,24 @@ export default function TournamentsPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/matches/result', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          matchId,
-          tournamentId: selectedTournament.id,
-          roundNumber: matches.find(m => m.id === matchId)?.roundNumber,
-          goalsUser1: matchResult.goalsUser1,
-          goalsUser2: matchResult.goalsUser2
-        })
+      await ApiService.matches.updateResult(token, {
+        matchId,
+        tournamentId: selectedTournament.id,
+        roundNumber: matches.find(m => m.id === matchId)?.roundNumber,
+        goalsUser1: matchResult.goalsUser1,
+        goalsUser2: matchResult.goalsUser2
       });
 
-      if (response.ok) {
-        // Обновляем список матчей
-        const matchesResponse = await fetch(`http://localhost:8080/api/matches/tournament/${selectedTournament.id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (matchesResponse.ok) {
-          const data = await matchesResponse.json();
-          setMatches(data);
-          // Обновляем активные матчи
-          const activeOnes = data.filter((match: Match) => match.matchStatus !== 'завершен');
-          setActiveMatches(activeOnes);
-        }
-        setUpdatingMatch(null);
-        setMatchResult({ goalsUser1: 0, goalsUser2: 0 });
-      }
+      // Обновляем список матчей
+      const matchesData = await ApiService.matches.getTournamentMatches(token, selectedTournament.id);
+      setMatches(matchesData);
+      
+      // Обновляем активные матчи
+      const activeOnes = matchesData.filter((match: Match) => match.matchStatus !== 'завершен');
+      setActiveMatches(activeOnes);
+      
+      setUpdatingMatch(null);
+      setMatchResult({ goalsUser1: 0, goalsUser2: 0 });
     } catch (error) {
       console.error('Error updating match result:', error);
     }
@@ -414,15 +320,8 @@ export default function TournamentsPage() {
     
     setLoadingAllMatches(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/matches/tournament/${selectedTournament.id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setAllMatches(data);
-      }
+      const data = await ApiService.matches.getTournamentMatches(token, selectedTournament.id);
+      setAllMatches(data);
     } catch (error) {
       console.error('Error fetching all matches:', error);
     } finally {
@@ -432,16 +331,10 @@ export default function TournamentsPage() {
 
   useEffect(() => {
     const fetchTournaments = async () => {
+      if (!token) return;
       try {
-        const response = await fetch('http://localhost:8080/api/tournament', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setTournaments(data);
-        }
+        const data = await ApiService.tournaments.getAll(token);
+        setTournaments(data);
       } catch (error) {
         console.error('Error fetching tournaments:', error);
       } finally {
@@ -456,19 +349,12 @@ export default function TournamentsPage() {
 
   useEffect(() => {
     const fetchParticipants = async () => {
-      if (!selectedTournament) return;
+      if (!selectedTournament || !token) return;
       
       setLoadingParticipants(true);
       try {
-        const response = await fetch(`http://localhost:8080/api/tournament/${selectedTournament.id}/participants`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setParticipants(data);
-        }
+        const data = await ApiService.tournaments.getParticipants(token, selectedTournament.id);
+        setParticipants(data);
       } catch (error) {
         console.error('Error fetching participants:', error);
       } finally {
@@ -485,24 +371,16 @@ export default function TournamentsPage() {
 
   useEffect(() => {
     const fetchMatches = async () => {
-      if (!selectedTournament) return;
+      if (!selectedTournament || !token) return;
       
       setLoadingMatches(true);
       try {
-        const response = await fetch(`http://localhost:8080/api/matches/tournament/${selectedTournament.id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Все матчи турнира:', data);
-          setMatches(data);
-          // Фильтруем только матчи без результата
-          const activeOnes = data.filter((match: Match) => match.matchStatus !== 'завершен');
-          console.log('Активные матчи:', activeOnes);
-          setActiveMatches(activeOnes);
-        }
+        const data = await ApiService.matches.getTournamentMatches(token, selectedTournament.id);
+        setMatches(data);
+        
+        // Фильтруем активные матчи
+        const activeOnes = data.filter((match: Match) => match.matchStatus !== 'завершен');
+        setActiveMatches(activeOnes);
       } catch (error) {
         console.error('Error fetching matches:', error);
       } finally {
@@ -513,6 +391,7 @@ export default function TournamentsPage() {
     if (selectedTournament) {
       fetchMatches();
     } else {
+      setMatches([]);
       setActiveMatches([]);
     }
   }, [selectedTournament, token]);

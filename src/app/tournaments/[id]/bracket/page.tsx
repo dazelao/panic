@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthLayout from '@/components/AuthLayout';
 import { useParams, useRouter } from 'next/navigation';
+import { ApiService } from '@/config/apiService';
 
 interface Match {
   id: number;
@@ -74,30 +75,17 @@ export default function TournamentBracketPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [tournamentResponse, matchesResponse, participantsResponse] = await Promise.all([
-          fetch(`http://localhost:8080/api/tournament/${params.id}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }),
-          fetch(`http://localhost:8080/api/matches/tournament/${params.id}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }),
-          fetch(`http://localhost:8080/api/tournament/${params.id}/participants`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          })
+        if (!token) return;
+
+        const [tournament, matchesData, participantsData] = await Promise.all([
+          ApiService.tournaments.get(token, Number(params.id)),
+          ApiService.matches.getTournamentMatches(token, Number(params.id)),
+          ApiService.tournaments.getParticipants(token, Number(params.id))
         ]);
 
-        if (tournamentResponse.ok) {
-          const tournament = await tournamentResponse.json();
-          setTournamentName(tournament.name);
-        }
-        if (matchesResponse.ok) {
-          const matchesData = await matchesResponse.json();
-          setMatches(matchesData);
-        }
-        if (participantsResponse.ok) {
-          const participantsData = await participantsResponse.json();
-          setParticipants(participantsData);
-        }
+        setTournamentName(tournament.name);
+        setMatches(matchesData);
+        setParticipants(participantsData);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {

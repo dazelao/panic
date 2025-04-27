@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 import { Dialog, DialogTitle, DialogContent, Snackbar } from '@mui/material';
+import { API_BASE_URL } from '@/config/api';
 
 interface Tournament {
   id: number;
@@ -160,7 +161,7 @@ export default function SwissPage() {
       setError('');
       
       try {
-        const response = await fetch('http://localhost:8080/api/swiss/tournaments', {
+        const response = await fetch(`${API_BASE_URL}/swiss/tournaments`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -202,7 +203,7 @@ export default function SwissPage() {
       if (!token) return;
       
       // Загружаем детали турнира
-      const tournamentResponse = await fetch(`http://localhost:8080/api/swiss/tournaments/${id}`, {
+      const tournamentResponse = await fetch(`${API_BASE_URL}/swiss/tournaments/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -212,7 +213,7 @@ export default function SwissPage() {
       setSelectedTournament(tournamentData);
 
       // Загружаем список участников
-      const participantsResponse = await fetch(`http://localhost:8080/api/swiss/tournaments/${id}/participants`, {
+      const participantsResponse = await fetch(`${API_BASE_URL}/swiss/tournaments/${id}/participants`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -222,7 +223,7 @@ export default function SwissPage() {
       setParticipants(participantsData);
 
       // Загружаем список матчей
-      const matchesResponse = await fetch(`http://localhost:8080/api/swiss/tournaments/${id}/matches/current`, {
+      const matchesResponse = await fetch(`${API_BASE_URL}/swiss/tournaments/${id}/matches/current`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -232,7 +233,7 @@ export default function SwissPage() {
       setMatches(matchesData);
 
       // Загружаем результаты
-      const resultsResponse = await fetch(`http://localhost:8080/api/swiss/tournaments/${id}/results`, {
+      const resultsResponse = await fetch(`${API_BASE_URL}/swiss/tournaments/${id}/results`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -274,7 +275,7 @@ export default function SwissPage() {
 
   const handleParticipantClick = async (participant: Participant) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/users/${participant.userId}`, {
+      const response = await fetch(`${API_BASE_URL}/users/${participant.userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -333,7 +334,7 @@ export default function SwissPage() {
     };
 
     try {
-      const response = await fetch('http://localhost:8080/api/swiss/tournaments', {
+      const response = await fetch(`${API_BASE_URL}/swiss/tournaments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -348,7 +349,7 @@ export default function SwissPage() {
 
       setCreateModalOpen(false);
       // Перезагружаем список турниров
-      const tournamentsResponse = await fetch('http://localhost:8080/api/swiss/tournaments', {
+      const tournamentsResponse = await fetch(`${API_BASE_URL}/swiss/tournaments`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -366,7 +367,7 @@ export default function SwissPage() {
 
   const handleOpenRegistration = async (tournamentId: number) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/swiss/tournaments/${tournamentId}/open`, {
+      const response = await fetch(`${API_BASE_URL}/swiss/tournaments/${tournamentId}/open`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -390,11 +391,11 @@ export default function SwissPage() {
   const fetchUsers = async () => {
     setUsersLoading(true);
     try {
-      let url = 'http://localhost:8080/api/users';
+      let url = `${API_BASE_URL}/users`;
       
       // Если есть ключ или значение атрибута, используем поиск по атрибутам
       if (attributeKey || attributeValue) {
-        url = 'http://localhost:8080/api/users/by-attribute';
+        url = `${API_BASE_URL}/users/by-attribute`;
         const params = new URLSearchParams();
         if (attributeKey) params.append('key', attributeKey);
         if (attributeValue) params.append('value', attributeValue);
@@ -421,7 +422,7 @@ export default function SwissPage() {
     if (!selectedTournament) return;
     
     try {
-      const response = await fetch(`http://localhost:8080/api/swiss/tournaments/${selectedTournament.id}/register`, {
+      const response = await fetch(`${API_BASE_URL}/swiss/tournaments/${selectedTournament.id}/register`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -443,7 +444,7 @@ export default function SwissPage() {
     if (!selectedTournament) return;
     
     try {
-      const response = await fetch(`http://localhost:8080/api/swiss/tournaments/${selectedTournament.id}/unregister`, {
+      const response = await fetch(`${API_BASE_URL}/swiss/tournaments/${selectedTournament.id}/unregister`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -466,7 +467,7 @@ export default function SwissPage() {
     
     try {
       // Сначала закрываем регистрацию
-      const closeResponse = await fetch(`http://localhost:8080/api/swiss/tournaments/${selectedTournament.id}/close`, {
+      const closeResponse = await fetch(`${API_BASE_URL}/swiss/tournaments/${selectedTournament.id}/close`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -476,7 +477,7 @@ export default function SwissPage() {
       if (!closeResponse.ok) throw new Error('Failed to close registration');
 
       // Затем запускаем турнир
-      const startResponse = await fetch(`http://localhost:8080/api/swiss/tournaments/${selectedTournament.id}/start`, {
+      const startResponse = await fetch(`${API_BASE_URL}/swiss/tournaments/${selectedTournament.id}/start`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -498,7 +499,7 @@ export default function SwissPage() {
     if (!selectedTournament) return;
     
     try {
-      const response = await fetch(`http://localhost:8080/api/swiss/tournaments/${selectedTournament.id}/cancel`, {
+      const response = await fetch(`${API_BASE_URL}/swiss/tournaments/${selectedTournament.id}/cancel`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -524,7 +525,7 @@ export default function SwissPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/api/swiss/matches/${matchId}/update`, {
+      const response = await fetch(`${API_BASE_URL}/swiss/matches/${matchId}/update`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -557,7 +558,7 @@ export default function SwissPage() {
     
     setNextRoundLoading(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/swiss/tournaments/${selectedTournament.id}/next-round`, {
+      const response = await fetch(`${API_BASE_URL}/swiss/tournaments/${selectedTournament.id}/next-round`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -598,7 +599,7 @@ export default function SwissPage() {
     if (!selectedTournament) return;
     
     try {
-      const response = await fetch(`http://localhost:8080/api/swiss/tournaments/${selectedTournament.id}/register/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/swiss/tournaments/${selectedTournament.id}/register/${userId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -620,7 +621,7 @@ export default function SwissPage() {
     if (!selectedTournament) return;
     
     try {
-      const response = await fetch(`http://localhost:8080/api/swiss/tournaments/${selectedTournament.id}/unregister/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/swiss/tournaments/${selectedTournament.id}/unregister/${userId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
