@@ -14,9 +14,13 @@ interface User {
 export default function AttributesManagementPage() {
   const router = useRouter();
   const { user, token } = useAuth();
-  const [users, setUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [usernameFilter, setUsernameFilter] = useState('');
+  const [attributeKeyFilter, setAttributeKeyFilter] = useState('');
+  const [attributeValueFilter, setAttributeValueFilter] = useState('');
 
   useEffect(() => {
     if (user?.role !== 'ADMIN') {
@@ -33,7 +37,8 @@ export default function AttributesManagementPage() {
         });
         if (!response.ok) throw new Error('Failed to fetch users');
         const data = await response.json();
-        setUsers(data);
+        setAllUsers(data);
+        setFilteredUsers(data);
       } catch (err) {
         setError('Failed to load users');
       } finally {
@@ -43,6 +48,31 @@ export default function AttributesManagementPage() {
 
     fetchUsers();
   }, [user, router, token]);
+
+  // Применяем все фильтры при изменении любого из них
+  useEffect(() => {
+    const filtered = allUsers.filter((user: User) => {
+      // Фильтр по имени пользователя
+      const usernameMatch = user.username.toLowerCase().includes(usernameFilter.toLowerCase());
+      
+      // Если нет фильтров по атрибутам, проверяем только имя
+      if (!attributeKeyFilter && !attributeValueFilter) {
+        return usernameMatch;
+      }
+
+      // Проверяем атрибуты
+      const attributes = user.attributes || {};
+      const hasMatchingAttribute = Object.entries(attributes).some(([key, value]) => {
+        const keyMatch = !attributeKeyFilter || key.toLowerCase().includes(attributeKeyFilter.toLowerCase());
+        const valueMatch = !attributeValueFilter || value.toLowerCase().includes(attributeValueFilter.toLowerCase());
+        return keyMatch && valueMatch;
+      });
+
+      return usernameMatch && hasMatchingAttribute;
+    });
+
+    setFilteredUsers(filtered);
+  }, [allUsers, usernameFilter, attributeKeyFilter, attributeValueFilter]);
 
   const handleAttributeUpdate = async (userId: number, key: string, value: string) => {
     try {
@@ -64,7 +94,7 @@ export default function AttributesManagementPage() {
         }
       });
       const updatedData = await updatedResponse.json();
-      setUsers(updatedData);
+      setFilteredUsers(updatedData);
     } catch (err) {
       setError('Failed to update attribute');
     }
@@ -88,7 +118,7 @@ export default function AttributesManagementPage() {
         }
       });
       const updatedData = await updatedResponse.json();
-      setUsers(updatedData);
+      setFilteredUsers(updatedData);
     } catch (err) {
       setError('Failed to delete attribute');
     }
@@ -99,6 +129,49 @@ export default function AttributesManagementPage() {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Управління атрибутами користувачів</h1>
         
+        <div className="mb-6 space-y-4">
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Фільтр за іменем користувача
+              </label>
+              <input
+                type="text"
+                placeholder="Пошук за іменем користувача..."
+                value={usernameFilter}
+                onChange={(e) => setUsernameFilter(e.target.value)}
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
+              />
+            </div>
+            <div className="flex gap-2 flex-1">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Фільтр за ключем атрибута
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ключ атрибута..."
+                  value={attributeKeyFilter}
+                  onChange={(e) => setAttributeKeyFilter(e.target.value)}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Фільтр за значенням атрибута
+                </label>
+                <input
+                  type="text"
+                  placeholder="Значення атрибута..."
+                  value={attributeValueFilter}
+                  onChange={(e) => setAttributeValueFilter(e.target.value)}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
@@ -124,7 +197,7 @@ export default function AttributesManagementPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <tr key={user.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{user.username}</div>

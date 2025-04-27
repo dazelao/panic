@@ -3,7 +3,6 @@
 import { getLeagues } from '@/api/leagues';
 import AuthLayout from '@/components/AuthLayout';
 import CreateLeagueModal from '@/components/CreateLeagueModal';
-import AddParticipantModal from '@/components/AddParticipantModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { League, LeagueStatus } from '@/types/league';
 import { useEffect, useState, useMemo } from 'react';
@@ -57,7 +56,6 @@ export default function LeaguesPage() {
   const [statusFilter, setStatusFilter] = useState<LeagueStatus | undefined>();
   const [mounted, setMounted] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedLeagueId, setSelectedLeagueId] = useState<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -117,7 +115,7 @@ export default function LeaguesPage() {
             </select>
             {isAdmin && (
               <button
-                onClick={() => router.push('/league/create')}
+                onClick={() => setIsCreateModalOpen(true)}
                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
               >
                 Створити лігу
@@ -151,14 +149,6 @@ export default function LeaguesPage() {
                           {league.participantCount} / {league.maxParticipants} учасників
                         </span>
                         <div className="flex gap-2">
-                          {league.status === 'DRAFT' && (
-                            <button
-                              onClick={() => setSelectedLeagueId(league.id)}
-                              className="px-3 py-1 rounded bg-green-600 text-white text-xs font-medium hover:bg-green-700 transition"
-                            >
-                              Додати учасника
-                            </button>
-                          )}
                           <a
                             href={`/leagues/${league.id}`}
                             className="px-3 py-1 rounded bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700 transition"
@@ -186,16 +176,6 @@ export default function LeaguesPage() {
           <CreateLeagueModal
             token={token}
             onClose={() => setIsCreateModalOpen(false)}
-            onSuccess={fetchLeagues}
-          />
-        )}
-
-        {selectedLeagueId && token && (
-          <AddParticipantModal
-            open={true}
-            onClose={() => setSelectedLeagueId(null)}
-            leagueId={selectedLeagueId?.toString() || ''}
-            token={token}
             onSuccess={fetchLeagues}
           />
         )}

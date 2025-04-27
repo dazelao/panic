@@ -45,6 +45,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
   const navigation = [
     { name: 'Профіль', href: '/profile' },
+    { name: 'Турніри', href: '/tournaments' },
     { name: 'Ліги', href: '/leagues' },
     { name: 'Швейцарка', href: '/swiss' },
     ...(user?.role === 'ADMIN' ? [
@@ -77,7 +78,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
                     <li key={item.name}>
                       {item.children ? (
                         <div>
-                          <div className="px-4 py-2 text-sm font-medium text-gray-600">{item.name}</div>
+                          <div className="px-4 py-2 text-sm font-medium text-gray-500 mb-1">{item.name}</div>
                           <ul className="ml-4 space-y-1">
                             {item.children.map((child) => {
                               const isChildActive = pathname === child.href;
@@ -85,10 +86,10 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
                                 <li key={child.name}>
                                   <Link
                                     href={child.href}
-                                    className={`block px-4 py-2 rounded-md text-sm font-medium ${
+                                    className={`block px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 border-l-4 ${
                                       isChildActive
-                                        ? 'bg-indigo-500 text-white'
-                                        : 'text-gray-600 hover:bg-gray-100'
+                                        ? 'bg-indigo-50 text-indigo-700 border-indigo-500 shadow-sm'
+                                        : 'text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-indigo-600 hover:border-indigo-300 hover:shadow-sm'
                                     }`}
                                   >
                                     {child.name}
@@ -101,10 +102,10 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
                       ) : (
                         <Link
                           href={item.href}
-                          className={`block px-4 py-2 rounded-md text-sm font-medium ${
+                          className={`block px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 border-l-4 ${
                             isActive
-                              ? 'bg-indigo-500 text-white'
-                              : 'text-gray-600 hover:bg-gray-100'
+                              ? 'bg-indigo-50 text-indigo-700 border-indigo-500 shadow-sm'
+                              : 'text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-indigo-600 hover:border-indigo-300 hover:shadow-sm'
                           }`}
                         >
                           {item.name}
