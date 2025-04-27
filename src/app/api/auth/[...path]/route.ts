@@ -4,9 +4,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://donetsk1y-tournament
 
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ path: string[] }> }
+  context: Promise<{ params: { path: string[] } }>
 ) {
-  const { path } = await context.params;
+  const { params } = await context;
+  const { path } = params;
   const headers = new Headers(request.headers);
   headers.delete('host');
 
@@ -23,9 +24,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  context: { params: Promise<{ path: string[] }> }
+  context: Promise<{ params: { path: string[] } }>
 ) {
-  const { path } = await context.params;
+  const { params } = await context;
+  const { path } = params;
   const headers = new Headers(request.headers);
   headers.delete('host');
 
@@ -43,9 +45,10 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  context: { params: Promise<{ path: string[] }> }
+  context: Promise<{ params: { path: string[] } }>
 ) {
-  const { path } = await context.params;
+  const { params } = await context;
+  const { path } = params;
   const headers = new Headers(request.headers);
   headers.delete('host');
 

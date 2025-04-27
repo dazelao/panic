@@ -4,14 +4,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://donetsk1y-tournament
 
 export async function GET(
   request: NextRequest,
-  context: Promise<{ params: { path: string[] } }>
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const { params } = await context;
-  const { path } = params;
+  const { path } = await params;
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/users${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(`${API_URL}/api/tournaments${path ? `/${path.join('/')}` : ''}`, {
     headers,
     method: request.method,
   });
@@ -24,14 +23,13 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  context: Promise<{ params: { path: string[] } }>
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const { params } = await context;
-  const { path } = params;
+  const { path } = await params;
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/users${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(`${API_URL}/api/tournaments${path ? `/${path.join('/')}` : ''}`, {
     headers,
     method: request.method,
     body: request.body
@@ -45,14 +43,13 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  context: Promise<{ params: { path: string[] } }>
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const { params } = await context;
-  const { path } = params;
+  const { path } = await params;
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/users${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(`${API_URL}/api/tournaments${path ? `/${path.join('/')}` : ''}`, {
     headers,
     method: request.method,
     body: request.body
@@ -66,14 +63,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  context: Promise<{ params: { path: string[] } }>
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const { params } = await context;
-  const { path } = params;
+  const { path } = await params;
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/users${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(`${API_URL}/api/tournaments${path ? `/${path.join('/')}` : ''}`, {
     headers,
     method: request.method
   });

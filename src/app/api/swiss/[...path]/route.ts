@@ -1,81 +1,64 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://donetsk1y-tournament.space';
+const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000/api";
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await context.params;
-  const headers = new Headers(request.headers);
-  headers.delete('host');
+export async function GET(request: NextRequest, { params }: { params: { path: string[] } }) {
+  const url = `${API_BASE_URL}/swiss/${params.path.join("/")}`;
+  const headers = {
+    "Content-Type": "application/json",
+  };
 
-  const response = await fetch(`${API_URL}/api/swiss${path ? `/${path.join('/')}` : ''}`, {
-    headers,
-    method: request.method,
-  });
+  const response = await fetch(url, { headers });
+  const data = await response.json();
 
-  return new Response(response.body, {
-    status: response.status,
-    headers: response.headers,
-  });
+  return NextResponse.json(data);
 }
 
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await context.params;
-  const headers = new Headers(request.headers);
-  headers.delete('host');
+export async function POST(request: NextRequest, { params }: { params: { path: string[] } }) {
+  const url = `${API_BASE_URL}/swiss/${params.path.join("/")}`;
+  const body = await request.json();
+  const headers = {
+    "Content-Type": "application/json",
+  };
 
-  const response = await fetch(`${API_URL}/api/swiss${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(url, {
+    method: "POST",
     headers,
-    method: request.method,
-    body: request.body
+    body: JSON.stringify(body),
   });
+  const data = await response.json();
 
-  return new Response(response.body, {
-    status: response.status,
-    headers: response.headers,
-  });
+  return NextResponse.json(data);
 }
 
-export async function PUT(
-  request: NextRequest,
-  context: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await context.params;
-  const headers = new Headers(request.headers);
-  headers.delete('host');
+export async function PUT(request: NextRequest, { params }: { params: { path: string[] } }) {
+  const url = `${API_BASE_URL}/swiss/${params.path.join("/")}`;
+  const body = await request.json();
+  const headers = {
+    "Content-Type": "application/json",
+  };
 
-  const response = await fetch(`${API_URL}/api/swiss${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(url, {
+    method: "PUT",
     headers,
-    method: request.method,
-    body: request.body
+    body: JSON.stringify(body),
   });
+  const data = await response.json();
 
-  return new Response(response.body, {
-    status: response.status,
-    headers: response.headers,
-  });
+  return NextResponse.json(data);
 }
 
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await context.params;
-  const headers = new Headers(request.headers);
-  headers.delete('host');
+export async function DELETE(request: NextRequest, { params }: { params: { path: string[] } }) {
+  const url = `${API_BASE_URL}/swiss/${params.path.join("/")}`;
+  const headers = {
+    "Content-Type": "application/json",
+  };
 
-  const response = await fetch(`${API_URL}/api/swiss${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(url, {
+    method: "DELETE",
     headers,
-    method: request.method
   });
+  const data = await response.json();
 
-  return new Response(response.body, {
-    status: response.status,
-    headers: response.headers,
-  });
-} 
+  return NextResponse.json(data);
+}
