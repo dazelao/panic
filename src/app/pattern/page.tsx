@@ -30,8 +30,8 @@ export default function PatternPage() {
       
       try {
         const endpoint = selectedType === 'league' 
-          ? 'http://31.202.133.123:8080/api/league/tournaments'
-          : 'http://31.202.133.123:8080/api/swiss/tournaments';
+          ? 'https://donetsk1y-tournament.space/league/tournaments'
+          : 'https://donetsk1y-tournament.space/api/swiss/tournaments';
 
         const response = await fetch(endpoint, {
           headers: {
