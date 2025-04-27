@@ -1,5 +1,5 @@
 // API конфигурация
-export const API_BASE_URL = 'http://31.202.133.123:8080/api';
+export const API_BASE_URL = '/api';
 export const AUTH_API_URL = `${API_BASE_URL}/auth`;
 
 // Хелперы для построения URL
