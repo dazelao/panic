@@ -2,13 +2,9 @@ import { NextRequest } from 'next/server';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://donetsk1y-tournament.space';
 
-interface RouteContext {
-  params: { path: string[] }
-}
-
 export async function GET(
   request: NextRequest,
-  { params }: RouteContext
+  { params }: { params: { path: string[] } }
 ) {
   const path = params.path.join('/');
   const headers = new Headers(request.headers);
@@ -27,7 +23,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: RouteContext
+  { params }: { params: { path: string[] } }
 ) {
   const path = params.path.join('/');
   const headers = new Headers(request.headers);
@@ -47,7 +43,7 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  { params }: RouteContext
+  { params }: { params: { path: string[] } }
 ) {
   const path = params.path.join('/');
   const headers = new Headers(request.headers);
