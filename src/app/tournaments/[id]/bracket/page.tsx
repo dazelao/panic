@@ -34,6 +34,7 @@ export default function TournamentBracketPage() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
   const [tournamentName, setTournamentName] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const { token } = useAuth();
   const params = useParams();
   const router = useRouter();
@@ -46,13 +47,27 @@ export default function TournamentBracketPage() {
       }
       grouped.get(match.roundNumber)?.push(match);
     });
-    // Сортируем от ранних раундов к финалу
     return new Map([...grouped.entries()].sort((a, b) => a[0] - b[0]));
   };
 
   const getParticipantName = (userId: number) => {
     const participant = participants.find(p => p.id === userId);
     return participant?.username || 'Невідомий гравець';
+  };
+
+  const getRoundName = (roundNumber: number, totalRounds: number) => {
+    if (roundNumber === totalRounds) return 'Фінал';
+    if (roundNumber === totalRounds - 1) return 'Півфінал';
+    return `Раунд ${roundNumber}`;
+  };
+
+  const isMatchWithUser = (match: Match) => {
+    if (!selectedUserId) return false;
+    return match.userId1 === selectedUserId || match.userId2 === selectedUserId;
+  };
+
+  const handleUserClick = (userId: number) => {
+    setSelectedUserId(selectedUserId === userId ? null : userId);
   };
 
   useEffect(() => {
@@ -95,9 +110,12 @@ export default function TournamentBracketPage() {
     }
   }, [token, params.id]);
 
+  const groupedMatches = groupMatchesByRound(matches);
+  const totalRounds = groupedMatches.size;
+
   return (
     <AuthLayout>
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <button
@@ -115,97 +133,73 @@ export default function TournamentBracketPage() {
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
           </div>
         ) : matches.length > 0 ? (
-          <div className="relative bg-white p-8 rounded-lg overflow-x-auto min-h-[600px] border border-gray-200">
-            <div className="absolute top-4 left-1/2 -translate-x-1/2">
-              <div className="text-indigo-600 text-xl font-bold tracking-wider px-6 py-2 border-2 border-indigo-600 rounded">
-                PLAYOFFS
-              </div>
-            </div>
-            <div className="flex justify-start items-center mt-16 pl-8">
-              <div className="flex gap-32 items-start">
-                {Array.from(groupMatchesByRound(matches)).map(([round, roundMatches], roundIndex, rounds) => {
-                  const matchGap = Math.pow(2, roundIndex + 2) * 40;
-                  return (
-                    <div 
-                      key={round} 
-                      className="flex flex-col relative"
-                      style={{
-                        gap: `${matchGap}px`,
-                        marginTop: roundIndex === 0 ? '0' : `${matchGap / 2}px`
-                      }}
-                    >
-                      {roundMatches.map((match, matchIndex) => {
-                        const isEvenMatch = matchIndex % 2 === 0;
-                        const hasNextRound = roundIndex < rounds.length - 1;
-
-                        return (
-                          <div 
-                            key={match.id} 
-                            className="relative"
-                          >
-                            <div className="w-[240px] bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm relative z-10">
-                              <div className={`p-3 ${
-                                match.winnerId === match.userId1 
-                                  ? 'border-l-4 border-green-500 bg-green-50' 
-                                  : 'border-l-4 border-transparent'
-                              }`}>
-                                <div className="text-sm font-medium text-gray-900">
-                                  {getParticipantName(match.userId1)}
-                                </div>
-                                <div className="text-sm text-gray-600 mt-1">
-                                  {match.goalsUser1 !== null ? match.goalsUser1 : '-'}
-                                </div>
-                              </div>
-                              <div className={`p-3 border-t border-gray-200 ${
-                                match.winnerId === match.userId2 
-                                  ? 'border-l-4 border-green-500 bg-green-50' 
-                                  : 'border-l-4 border-transparent'
-                              }`}>
-                                <div className="text-sm font-medium text-gray-900">
-                                  {getParticipantName(match.userId2)}
-                                </div>
-                                <div className="text-sm text-gray-600 mt-1">
-                                  {match.goalsUser2 !== null ? match.goalsUser2 : '-'}
-                                </div>
-                              </div>
-                            </div>
-
-                            {hasNextRound && (
-                              <>
-                                {/* Горизонтальная линия от матча */}
-                                <div 
-                                  className="absolute bg-gray-300"
-                                  style={{
-                                    width: '32px',
-                                    height: '2px',
-                                    right: '-32px',
-                                    top: '50%',
-                                    transform: 'translateY(-50%)'
-                                  }}
-                                />
-                                
-                                {/* Вертикальная линия */}
-                                {isEvenMatch && (
-                                  <div 
-                                    className="absolute bg-gray-300"
-                                    style={{
-                                      width: '2px',
-                                      height: `${matchGap}px`,
-                                      right: '-32px',
-                                      top: '50%'
-                                    }}
-                                  />
-                                )}
-                              </>
-                            )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from(groupedMatches.entries()).map(([round, roundMatches]) => (
+              <div key={round} className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-lg font-semibold text-indigo-600 mb-4">
+                  {getRoundName(round, totalRounds)}
+                </h2>
+                <div className="space-y-4">
+                  {roundMatches.map((match) => {
+                    const isHighlighted = isMatchWithUser(match);
+                    return (
+                      <div 
+                        key={match.id}
+                        className={`relative rounded-lg overflow-hidden transition-all duration-300 ${
+                          isHighlighted 
+                            ? 'shadow-[0_4px_20px_rgba(0,0,0,0.2)] scale-[1.05] z-10' 
+                            : 'border border-gray-200'
+                        }`}
+                      >
+                        <div 
+                          className={`p-3 cursor-pointer ${
+                            match.winnerId === match.userId1 
+                              ? 'border-l-4 border-green-500 bg-green-50' 
+                              : isHighlighted && match.userId1 === selectedUserId
+                                ? 'border-l-4 border-gray-500 bg-gray-100'
+                                : 'border-l-4 border-transparent'
+                          }`}
+                          onClick={() => handleUserClick(match.userId1)}
+                        >
+                          <div className="text-sm font-medium text-gray-900">
+                            {getParticipantName(match.userId1)}
                           </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
+                          <div className="text-sm text-gray-600 mt-1">
+                            {match.goalsUser1 !== null ? match.goalsUser1 : '-'}
+                          </div>
+                        </div>
+                        <div 
+                          className={`p-3 border-t border-gray-200 cursor-pointer ${
+                            match.winnerId === match.userId2 
+                              ? 'border-l-4 border-green-500 bg-green-50' 
+                              : isHighlighted && match.userId2 === selectedUserId
+                                ? 'border-l-4 border-gray-500 bg-gray-100'
+                                : 'border-l-4 border-transparent'
+                          }`}
+                          onClick={() => handleUserClick(match.userId2)}
+                        >
+                          <div className="text-sm font-medium text-gray-900">
+                            {getParticipantName(match.userId2)}
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            {match.goalsUser2 !== null ? match.goalsUser2 : '-'}
+                          </div>
+                        </div>
+                        {isHighlighted && (
+                          <div 
+                            className="absolute inset-0 rounded-lg pointer-events-none z-20" 
+                            style={{
+                              border: '2px solid transparent',
+                              borderImage: 'linear-gradient(to bottom, #2563eb 50%, #fbbf24 50%) 1'
+                            }} 
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         ) : (
           <div className="text-center text-black py-12">
