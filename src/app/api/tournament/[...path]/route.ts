@@ -2,15 +2,19 @@ import { NextRequest } from 'next/server';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://donetsk1y-tournament.space';
 
+interface RouteContext {
+  params: { path: string[] }
+}
+
 export async function GET(
   request: NextRequest,
-  context: { params: { path: string[] } }
+  { params }: RouteContext
 ) {
-  const path = context.params.path.join('/');
+  const path = params.path.join('/');
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/tournament${path ? `/${path}` : ''}`, {
+  const response = await fetch(`${API_URL}/api/tournament${path ? `/${path}` : ''}`, {
     headers,
     method: request.method,
   });
@@ -23,13 +27,13 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  context: { params: { path: string[] } }
+  { params }: RouteContext
 ) {
-  const path = context.params.path.join('/');
+  const path = params.path.join('/');
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/tournament${path ? `/${path}` : ''}`, {
+  const response = await fetch(`${API_URL}/api/tournament${path ? `/${path}` : ''}`, {
     headers,
     method: request.method,
     body: request.body
@@ -43,13 +47,13 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  context: { params: { path: string[] } }
+  { params }: RouteContext
 ) {
-  const path = context.params.path.join('/');
+  const path = params.path.join('/');
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/tournament${path ? `/${path}` : ''}`, {
+  const response = await fetch(`${API_URL}/api/tournament${path ? `/${path}` : ''}`, {
     headers,
     method: request.method,
     body: request.body
@@ -63,13 +67,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: { path: string[] } }
+  { params }: RouteContext
 ) {
-  const path = context.params.path.join('/');
+  const path = params.path.join('/');
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/tournament${path ? `/${path}` : ''}`, {
+  const response = await fetch(`${API_URL}/api/tournament${path ? `/${path}` : ''}`, {
     headers,
     method: request.method
   });
