@@ -4,14 +4,12 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://donetsk1y-tournament
 
 export async function GET(
   request: NextRequest,
-  context: Promise<{ params: { path: string[] } }>
+  { params }: { params: { path: string[] } }
 ) {
-  const { params } = await context;
-  const { path } = params;
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/auth/${path.join('/')}`, {
+  const response = await fetch(`${API_URL}/api/auth${params.path ? `/${params.path.join('/')}` : ''}`, {
     headers,
     method: request.method,
   });
@@ -24,14 +22,12 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  context: Promise<{ params: { path: string[] } }>
+  { params }: { params: { path: string[] } }
 ) {
-  const { params } = await context;
-  const { path } = params;
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/auth/${path.join('/')}`, {
+  const response = await fetch(`${API_URL}/api/auth${params.path ? `/${params.path.join('/')}` : ''}`, {
     headers,
     method: request.method,
     body: request.body
@@ -45,14 +41,12 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  context: Promise<{ params: { path: string[] } }>
+  { params }: { params: { path: string[] } }
 ) {
-  const { params } = await context;
-  const { path } = params;
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/auth/${path.join('/')}`, {
+  const response = await fetch(`${API_URL}/api/auth${params.path ? `/${params.path.join('/')}` : ''}`, {
     headers,
     method: request.method,
     body: request.body
@@ -62,4 +56,22 @@ export async function PUT(
     status: response.status,
     headers: response.headers,
   });
-} 
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  const headers = new Headers(request.headers);
+  headers.delete('host');
+
+  const response = await fetch(`${API_URL}/api/auth${params.path ? `/${params.path.join('/')}` : ''}`, {
+    headers,
+    method: request.method
+  });
+
+  return new Response(response.body, {
+    status: response.status,
+    headers: response.headers,
+  });
+}
