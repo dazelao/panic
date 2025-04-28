@@ -1,6 +1,7 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Checkbox, FormControlLabel } from '@mui/material';
 import { useState } from 'react';
-import { getUsersByAttribute, addParticipantsBulk, User } from '@/api/leagues';
+import { addParticipantsBulk, User } from '@/api/leagues';
+import { ApiService } from '@/config/apiService';
 
 interface BulkAddParticipantsModalProps {
   open: boolean;
@@ -28,7 +29,7 @@ export default function BulkAddParticipantsModal({ open, onClose, leagueId, toke
     setLoading(true);
     setError('');
     try {
-      const foundUsers = await getUsersByAttribute(token, attributeKey, attributeValue);
+      const foundUsers = await ApiService.users.getByAttribute(token, attributeKey, attributeValue);
       setUsers(foundUsers);
       setSearchPerformed(true);
       if (foundUsers.length === 0) {
