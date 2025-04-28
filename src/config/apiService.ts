@@ -90,7 +90,7 @@ export const ApiService = {
     getAttributes: (token: string, userId: number) => 
       apiRequest(`/users/${userId}/attributes`, 'GET', token),
     updateAttribute: (token: string, userId: number, key: string, value: string) => 
-      apiRequest(`/users/${userId}/attributes/${key}`, 'PUT', token, { value }),
+      apiRequest(`/users/${userId}/attributes`, 'PUT', token, { key, value }),
     deleteAttribute: (token: string, userId: number, key: string) => 
       apiRequest(`/users/${userId}/attributes/${key}`, 'DELETE', token),
   },
