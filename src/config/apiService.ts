@@ -62,7 +62,7 @@ export const ApiService = {
       apiRequest(`/tournament/${id}/participants`, 'GET', token),
     addParticipant: (token: string, tournamentId: number, userId?: number, data?: any) => 
       userId 
-        ? apiRequest(`/tournament/${tournamentId}/participant/${userId}`, 'POST', token) 
+        ? apiRequest(`/tournament/${tournamentId}/participant`, 'POST', token, { userId }) 
         : apiRequest(`/tournament/${tournamentId}/participant`, 'POST', token, data),
     removeParticipant: (token: string, tournamentId: number, userId: number) => 
       apiRequest(`/tournament/${tournamentId}/participant/${userId}`, 'DELETE', token),

@@ -10,7 +10,7 @@ export async function GET(
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/tournament${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(`${API_URL}/tournament${path ? `/${path.join('/')}` : ''}`, {
     headers,
     method: request.method,
   });
@@ -29,10 +29,10 @@ export async function POST(
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/tournament${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(`${API_URL}/tournament${path ? `/${path.join('/')}` : ''}`, {
     headers,
     method: request.method,
-    body: request.body
+    body: request.clone().body
   });
 
   return new Response(response.body, {
@@ -49,10 +49,10 @@ export async function PUT(
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/tournament${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(`${API_URL}/tournament${path ? `/${path.join('/')}` : ''}`, {
     headers,
     method: request.method,
-    body: request.body
+    body: request.clone().body
   });
 
   return new Response(response.body, {
@@ -69,7 +69,7 @@ export async function DELETE(
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/tournament${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(`${API_URL}/tournament${path ? `/${path.join('/')}` : ''}`, {
     headers,
     method: request.method
   });

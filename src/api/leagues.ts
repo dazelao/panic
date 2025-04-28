@@ -1,17 +1,18 @@
 import { League, LeagueStatus, CreateLeagueRequest } from '@/types/league';
 import { API_BASE_URL } from '@/config/api';
 
-const API_URL = API_BASE_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://donetsk1y-tournament.space';
 
 export const getLeagues = async (token: string, status?: LeagueStatus): Promise<League[]> => {
-  const url = new URL(`${API_URL}/leagues`);
+  let url = '/api/leagues';
   if (status) {
-    url.searchParams.append('status', status);
+    url += `?status=${status}`;
   }
 
-  const response = await fetch(url.toString(), {
+  const response = await fetch(url, {
     headers: {
       'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
     },
   });
 
@@ -23,9 +24,10 @@ export const getLeagues = async (token: string, status?: LeagueStatus): Promise<
 };
 
 export const getLeague = async (token: string, id: number): Promise<League> => {
-  const response = await fetch(`${API_URL}/leagues/${id}`, {
+  const response = await fetch(`/api/leagues/${id}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
     },
   });
 
@@ -37,7 +39,7 @@ export const getLeague = async (token: string, id: number): Promise<League> => {
 };
 
 export const createLeague = async (token: string, data: CreateLeagueRequest): Promise<League> => {
-  const response = await fetch(`${API_URL}/leagues`, {
+  const response = await fetch('/api/leagues', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -54,7 +56,7 @@ export const createLeague = async (token: string, data: CreateLeagueRequest): Pr
 };
 
 export const changeLeagueStatus = async (token: string, id: number, status: string): Promise<League> => {
-  const response = await fetch(`${API_URL}/leagues/${id}/status`, {
+  const response = await fetch(`/api/leagues/${id}/status`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -76,7 +78,7 @@ export const changeLeagueStatusRest = async (token: string, id: number, status: 
   else if (status === 'CANCELED') endpoint = 'cancel';
   else throw new Error('Unknown status');
 
-  const response = await fetch(`${API_URL}/leagues/${id}/${endpoint}`, {
+  const response = await fetch(`/api/leagues/${id}/${endpoint}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -163,10 +165,11 @@ export interface LeagueMatch {
 }
 
 export const getLeagueMatches = async (token: string, leagueId: number): Promise<LeagueMatch[]> => {
-  const response = await fetch(`${API_URL}/league-matches/league/${leagueId}`, {
+  const response = await fetch(`/api/league-matches/league/${leagueId}`, {
     headers: {
-      'Authorization': `Bearer ${token}`
-    }
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
   });
   if (!response.ok) throw new Error('Failed to fetch league matches');
   return response.json();
@@ -193,10 +196,11 @@ export interface LeagueStats {
 }
 
 export const getLeagueStats = async (token: string, leagueId: number): Promise<LeagueStats> => {
-  const response = await fetch(`${API_URL}/league-stats/${leagueId}`, {
+  const response = await fetch(`/api/league-stats/${leagueId}`, {
     headers: {
-      'Authorization': `Bearer ${token}`
-    }
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
   });
   if (!response.ok) throw new Error('Failed to fetch league stats');
   return response.json();
@@ -209,7 +213,7 @@ export interface UpdateMatchResultRequest {
 }
 
 export const updateMatchResult = async (token: string, matchId: number, data: UpdateMatchResultRequest): Promise<LeagueMatch> => {
-  const response = await fetch(`${API_URL}/league-matches/${matchId}/result`, {
+  const response = await fetch(`/api/league-matches/${matchId}/result`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -226,10 +230,11 @@ export const updateMatchResult = async (token: string, matchId: number, data: Up
 };
 
 export const generateMatches = async (token: string, leagueId: number): Promise<void> => {
-  const response = await fetch(`${API_URL}/league-matches/generate/${leagueId}`, {
+  const response = await fetch(`/api/league-matches/generate/${leagueId}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
     },
   });
 
@@ -239,13 +244,13 @@ export const generateMatches = async (token: string, leagueId: number): Promise<
 };
 
 export const registerSelf = async (token: string, leagueId: number, userId: number): Promise<void> => {
-  const response = await fetch(`${API_URL}/leagues/${leagueId}/participants`, {
+  const response = await fetch(`/api/leagues/${leagueId}/participants`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ userId })
+    body: JSON.stringify({ userId }),
   });
 
   if (!response.ok) {
@@ -254,10 +259,11 @@ export const registerSelf = async (token: string, leagueId: number, userId: numb
 };
 
 export const unregisterSelf = async (token: string, leagueId: number, userId: number): Promise<void> => {
-  const response = await fetch(`${API_URL}/leagues/${leagueId}/participants/${userId}`, {
+  const response = await fetch(`/api/leagues/${leagueId}/participants/${userId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
     },
   });
 
@@ -285,7 +291,7 @@ export const getUsersByAttribute = async (token: string, key?: string, value?: s
 };
 
 export const addParticipantsBulk = async (token: string, leagueId: number, userIds: number[]): Promise<void> => {
-  const response = await fetch(`${API_URL}/leagues/${leagueId}/participants/bulk`, {
+  const response = await fetch(`/api/leagues/${leagueId}/participants/bulk`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,

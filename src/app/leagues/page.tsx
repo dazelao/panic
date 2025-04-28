@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { League, LeagueStatus } from '@/types/league';
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 function LeagueStatusBadge({ status }: { status: string }) {
   const labels: Record<string, string> = {
@@ -64,11 +65,14 @@ export default function LeaguesPage() {
   const fetchLeagues = async () => {
     try {
       if (token) {
+        console.log('Fetching leagues with token:', token);
         const data = await getLeagues(token);
+        console.log('Received leagues data:', data);
         setLeagues(data);
         setError('');
       }
     } catch (err) {
+      console.error('Error fetching leagues:', err);
       setError('Не вдалося отримати ліги');
     } finally {
       setLoading(false);
@@ -149,12 +153,12 @@ export default function LeaguesPage() {
                           {league.participantCount} / {league.maxParticipants} учасників
                         </span>
                         <div className="flex gap-2">
-                          <a
+                          <Link
                             href={`/leagues/${league.id}`}
                             className="px-3 py-1 rounded bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700 transition"
                           >
                             Детальніше
-                          </a>
+                          </Link>
                         </div>
                       </div>
                     </div>
