@@ -1,7 +1,7 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Autocomplete, CircularProgress, List, ListItem, ListItemText, Typography } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { getUsers, User, addParticipant, unregisterSelf } from '@/api/leagues';
 import { ApiService } from '@/config/apiService';
+import { unregisterSelf, User } from '@/api/leagues';
 
 interface Participant {
   id: number;
@@ -27,11 +27,9 @@ export default function AddParticipantModal({ open, onClose, leagueId, token, on
 
   const fetchUsers = async () => {
     try {
-      const data = await getUsers(token);
-      console.log('Fetched users:', data);
+      const data = await ApiService.users.getAll(token);
       setUsers(data);
     } catch (e) {
-      console.error('Error fetching users:', e);
       setError('Помилка завантаження користувачів');
     }
   };
@@ -61,7 +59,7 @@ export default function AddParticipantModal({ open, onClose, leagueId, token, on
     setLoading(true);
     setError('');
     try {
-      await addParticipant(token, Number(leagueId), selectedUser.id);
+      await ApiService.leagues.addParticipant(token, Number(leagueId), selectedUser.id);
       setSelectedUser(null);
       fetchParticipants();
       onSuccess();
