@@ -7,14 +7,53 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
 
+interface ValidationErrors {
+  username?: string;
+  password?: string;
+  telegram?: string;
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const { setAuth } = useAuth();
   const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+
+  const validateForm = (formData: FormData): boolean => {
+    const errors: ValidationErrors = {};
+    
+    // Username validation: min 6 chars, only latin letters and numbers
+    const username = formData.get('username') as string;
+    if (!/^[a-zA-Z0-9]{6,}$/.test(username)) {
+      errors.username = 'Логін повинен містити мінімум 6 символів, тільки латинські літери та цифри';
+    }
+
+    // Password validation: min 6 chars
+    const password = formData.get('password') as string;
+    if (!password || password.length < 6) {
+      errors.password = 'Пароль повинен містити мінімум 6 символів';
+    }
+
+    // Telegram validation: must start with @
+    const telegram = formData.get('telegram') as string;
+    if (telegram && !telegram.startsWith('@')) {
+      errors.telegram = 'Telegram повинен починатися з @';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
+    setValidationErrors({});
+    
     const formData = new FormData(e.currentTarget);
+    
+    if (!validateForm(formData)) {
+      return;
+    }
     
     const data: RegisterRequest = {
       username: formData.get('username') as string,
@@ -27,8 +66,15 @@ export default function RegisterPage() {
       const response = await register(data);
       setAuth(response);
       router.push('/profile');
-    } catch (err) {
-      setError('Не вдалося зареєструватися. Спробуйте ще раз.');
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      
+      if (!navigator.onLine) {
+        setError('Відсутнє підключення до інтернету');
+        return;
+      }
+
+      setError(err.message || 'Не вдалося зареєструватися. Спробуйте ще раз');
     }
   };
 
@@ -42,7 +88,9 @@ export default function RegisterPage() {
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="text-red-500 text-center text-sm">{error}</div>
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm text-center">
+              {error}
+            </div>
           )}
           <div className="rounded-md shadow-sm space-y-4">
             <div>
@@ -54,9 +102,20 @@ export default function RegisterPage() {
                 name="username"
                 type="text"
                 required
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className={`appearance-none rounded-lg relative block w-full px-3 py-2 border ${
+                  validationErrors.username ? 'border-red-500' : 'border-gray-300'
+                } placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                 placeholder="Логін"
+                onChange={() => {
+                  if (validationErrors.username) {
+                    setValidationErrors(prev => ({ ...prev, username: undefined }));
+                  }
+                  setError('');
+                }}
               />
+              {validationErrors.username && (
+                <p className="mt-1 text-sm text-red-500">{validationErrors.username}</p>
+              )}
             </div>
             <div>
               <label htmlFor="password" className="sr-only">
@@ -67,9 +126,20 @@ export default function RegisterPage() {
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className={`appearance-none rounded-lg relative block w-full px-3 py-2 border ${
+                  validationErrors.password ? 'border-red-500' : 'border-gray-300'
+                } placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                 placeholder="Пароль"
+                onChange={() => {
+                  if (validationErrors.password) {
+                    setValidationErrors(prev => ({ ...prev, password: undefined }));
+                  }
+                  setError('');
+                }}
               />
+              {validationErrors.password && (
+                <p className="mt-1 text-sm text-red-500">{validationErrors.password}</p>
+              )}
             </div>
             <div>
               <label htmlFor="telegram" className="sr-only">
@@ -79,9 +149,20 @@ export default function RegisterPage() {
                 id="telegram"
                 name="telegram"
                 type="text"
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className={`appearance-none rounded-lg relative block w-full px-3 py-2 border ${
+                  validationErrors.telegram ? 'border-red-500' : 'border-gray-300'
+                } placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                 placeholder="Telegram (необов'язково)"
+                onChange={() => {
+                  if (validationErrors.telegram) {
+                    setValidationErrors(prev => ({ ...prev, telegram: undefined }));
+                  }
+                  setError('');
+                }}
               />
+              {validationErrors.telegram && (
+                <p className="mt-1 text-sm text-red-500">{validationErrors.telegram}</p>
+              )}
             </div>
             <div>
               <label htmlFor="eaId" className="sr-only">
@@ -93,6 +174,7 @@ export default function RegisterPage() {
                 type="text"
                 className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="EA ID (необов'язково)"
+                onChange={() => setError('')}
               />
             </div>
           </div>

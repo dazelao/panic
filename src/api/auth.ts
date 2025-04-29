@@ -13,7 +13,8 @@ export const register = async (data: RegisterRequest): Promise<AuthResponse> => 
   });
 
   if (!response.ok) {
-    throw new Error('Registration failed');
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Registration failed');
   }
 
   return response.json();
