@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 export default function ProfilePage() {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     telegram: '',
     eaId: ''
@@ -24,12 +25,30 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     try {
       const token = localStorage.getItem('token') || '';
       await apiRequest('/auth/update', 'PUT', token, formData);
       setIsEditing(false);
       window.location.reload();
-    } catch (error) {
+    } catch (error: any) {
+      let errorMessage = 'Помилка при оновленні профілю';
+      
+      try {
+        // Пробуем получить сообщение из разных форматов ответа
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.message && error.message.includes('{')) {
+          // Извлекаем JSON из строки ошибки
+          const jsonStr = error.message.substring(error.message.indexOf('{'));
+          const errorData = JSON.parse(jsonStr);
+          errorMessage = errorData.message || errorMessage;
+        }
+      } catch (e) {
+        console.error('Error parsing error message:', e);
+      }
+      
+      setError(errorMessage);
       console.error('Error updating profile:', error);
     }
   };
@@ -40,7 +59,10 @@ export default function ProfilePage() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Профіль</h1>
           <button
-            onClick={() => setIsEditing(!isEditing)}
+            onClick={() => {
+              setIsEditing(!isEditing);
+              setError('');
+            }}
             className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
           >
             {isEditing ? 'Скасувати' : 'Редагувати'}
@@ -49,6 +71,11 @@ export default function ProfilePage() {
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
           {isEditing ? (
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {error && (
+                <div className="p-4 bg-red-50 border-l-4 border-red-400 text-red-700">
+                  {error}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700">Telegram</label>
                 <input
