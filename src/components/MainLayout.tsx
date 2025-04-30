@@ -1,5 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
+import leftBanner from '../../public/left.jpg';
+import rightBanner from '../../public/right.jpg';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -11,10 +13,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       {/* Left Banner Space */}
       <div className="hidden lg:block w-[10%] sticky top-0 h-screen">
         <Image 
-          src="/left.jpg"
+          src={leftBanner}
           alt="Left Banner"
-          width={160}
-          height={600}
+          placeholder="blur"
           className="w-full h-full object-cover"
           priority
         />
@@ -28,10 +29,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       {/* Right Banner Space */}
       <div className="hidden lg:block w-[10%] sticky top-0 h-screen">
         <Image 
-          src="/right.jpg"
+          src={rightBanner}
           alt="Right Banner"
-          width={160}
-          height={600}
+          placeholder="blur"
           className="w-full h-full object-cover"
           priority
         />
