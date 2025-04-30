@@ -765,7 +765,7 @@ export default function TournamentsPage() {
                           >
                             {participant.username}
                             {copiedParticipant === participant.id && (
-                              <span className="text-xs text-green-600 ml-2">✓</span>
+                              <span className="text-xs text-green-600 ml-2">скопійовано</span>
                             )}
                           </div>
                         ))}

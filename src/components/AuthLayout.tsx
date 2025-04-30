@@ -61,14 +61,27 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="flex flex-1">
         {/* Sidebar */}
         <div className="w-64 bg-white shadow-lg">
-          <div className="flex flex-col h-screen">
+          <div className="flex flex-col h-full">
             <div className="p-4 border-b">
-              <h2 className="text-xl font-semibold text-gray-800">Турнірний застосунок</h2>
-              <p className="text-sm text-gray-500 mt-1">{user.username}</p>
+              <h2 className="text-xl font-semibold text-gray-800">Donetsk1y tournaments</h2>
+              <div className="mt-2 flex items-center justify-between">
+                <div className="px-2 py-1 bg-blue-50 border border-blue-400 rounded-md">
+                  <p className="text-xs text-blue-600 font-medium">{user.username}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    logout();
+                    router.push('/login');
+                  }}
+                  className="px-2 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 hover:border-red-300 rounded-md transition-colors"
+                >
+                  Вихід
+                </button>
+              </div>
             </div>
             <nav className="flex-1 p-4">
               <ul className="space-y-2">
@@ -116,23 +129,26 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
                 })}
               </ul>
             </nav>
-            <div className="p-4">
-              <button
-                onClick={() => {
-                  logout();
-                  router.push('/login');
-                }}
-                className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-              >
-                Вийти
-              </button>
-            </div>
           </div>
         </div>
 
         {/* Main content */}
         <div className="flex-1 p-8">
           {children}
+        </div>
+      </div>
+
+      {/* Bottom disclaimer */}
+      <div className="w-full bg-gray-100 border-t px-4 py-2 text-[10px] text-gray-600">
+        <div className="max-w-7xl mx-auto flex justify-between items-center relative">
+          <p>Продукт створено виключно для добровольчих цілей.</p>
+          <Link 
+            href="/tommy" 
+            className="absolute left-1/2 -translate-x-1/2 w-6 h-full opacity-0 hover:opacity-100 text-blue-600 flex items-center justify-center transition-opacity"
+          >
+            1
+          </Link>
+          <p className="italic">Права шакалів не захищені</p>
         </div>
       </div>
     </div>
