@@ -131,10 +131,10 @@ export const BracketView: React.FC<BracketViewProps> = ({
   };
   
   return (
-    <div className="relative w-full overflow-x-auto py-8">
-      <div className="flex">
-        {/* Заголовки раундов */}
-        <div className="flex absolute top-0 left-0 right-0 z-10 bg-white">
+    <div className="relative w-full overflow-x-auto py-4">
+      <div className="flex flex-col">
+        {/* Заголовки раундов - интегрированы в скролл */}
+        <div className="flex mb-6">
           {Array.from({ length: totalRounds }).map((_, index) => {
             const round = index + 1;
             return (
@@ -149,7 +149,7 @@ export const BracketView: React.FC<BracketViewProps> = ({
         </div>
         
         {/* Содержимое сетки */}
-        <div className="flex mt-10 w-full" style={{ minHeight: getRoundHeight(1) + 40 }}>
+        <div className="flex w-full" style={{ minHeight: getRoundHeight(1) + 40 }}>
           {Array.from({ length: totalRounds }).map((_, index) => {
             const round = index + 1;
             const roundMatches = matchesByRound.get(round) || [];
