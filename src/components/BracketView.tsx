@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import MatchCard from './MatchCard';
+import gsap from 'gsap';
 
 interface Match {
   id: number;
@@ -28,6 +29,9 @@ export const BracketView: React.FC<BracketViewProps> = ({
   onUserClick,
   potentialMatches
 }) => {
+  // Ref for animation
+  const bracketRef = useRef<HTMLDivElement>(null);
+  
   // Группируем матчи по раундам
   const matchesByRound = new Map<number, Match[]>();
   for (let i = 1; i <= totalRounds; i++) {
@@ -130,8 +134,83 @@ export const BracketView: React.FC<BracketViewProps> = ({
     return `Раунд ${roundNumber}`;
   };
   
+  // Animation effect when component mounts or matches change
+  useEffect(() => {
+    if (!bracketRef.current) return;
+    
+    // Get all match cards and placeholders
+    const matchCards = bracketRef.current.querySelectorAll('.match-card-container');
+    // Get all connecting lines
+    const connectorLines = bracketRef.current.querySelectorAll('.connector-line');
+    // Get round headers
+    const roundHeaders = bracketRef.current.querySelectorAll('.round-header');
+    
+    // Hide all elements initially
+    gsap.set(roundHeaders, {
+      y: -30,
+      opacity: 0
+    });
+    
+    gsap.set(matchCards, { 
+      y: -50, 
+      opacity: 0,
+      scale: 0.9
+    });
+    
+    gsap.set(connectorLines, {
+      opacity: 0,
+      scale: 0.5,
+      transformOrigin: "center left"
+    });
+    
+    // Create cascade animation for match cards
+    const tl = gsap.timeline();
+    
+    // First animate the round headers
+    tl.to(roundHeaders, {
+      y: 0,
+      opacity: 1,
+      stagger: 0.1,
+      duration: 0.3,
+      ease: "power2.out",
+      delay: 0.1
+    });
+    
+    // Then animate match cards
+    tl.to(matchCards, {
+      y: 0,
+      opacity: 1,
+      scale: 1,
+      stagger: {
+        each: 0.05,
+        from: "start",
+        grid: "auto"
+      },
+      duration: 0.4,
+      ease: "back.out(1.2)",
+    }, "-=0.1");
+    
+    // Then animate connecting lines
+    tl.to(connectorLines, {
+      opacity: 1,
+      scale: 1,
+      stagger: {
+        each: 0.02,
+        from: "start"
+      },
+      duration: 0.3,
+      ease: "power2.out"
+    }, "-=0.2"); // Start slightly before the card animation finishes
+    
+    // Clean up animation when component unmounts
+    return () => {
+      tl.kill();
+    };
+    
+  }, [matches.length]); // Re-run animation when matches change
+  
   return (
-    <div className="relative w-full overflow-x-auto py-4">
+    <div ref={bracketRef} className="relative w-full overflow-x-auto py-4">
       <div className="flex flex-col">
         {/* Заголовки раундов - интегрированы в скролл */}
         <div className="flex mb-6">
@@ -140,7 +219,7 @@ export const BracketView: React.FC<BracketViewProps> = ({
             return (
               <div 
                 key={`header-${round}`} 
-                className="flex-1 text-center py-2 font-semibold text-indigo-600 border-b"
+                className="flex-1 text-center py-2 font-semibold text-indigo-600 border-b round-header"
               >
                 {getRoundName(round)}
               </div>
@@ -169,7 +248,7 @@ export const BracketView: React.FC<BracketViewProps> = ({
                   return (
                     <div 
                       key={match.id} 
-                      className="absolute w-[calc(100%-24px)] mx-3"
+                      className="absolute w-[calc(100%-24px)] mx-3 match-card-container"
                       style={{ top: topPosition }}
                     >
                       <MatchCard
@@ -203,7 +282,7 @@ export const BracketView: React.FC<BracketViewProps> = ({
                   return (
                     <div 
                       key={`placeholder-${round}-${matchIndex}`} 
-                      className={`absolute w-[calc(100%-24px)] mx-3 p-3 border border-dashed rounded-lg ${
+                      className={`absolute w-[calc(100%-24px)] mx-3 p-3 border border-dashed rounded-lg match-card-container ${
                         isPotential ? 'bg-indigo-50 border-indigo-300' : 'text-gray-400 border-gray-200'
                       }`}
                       style={{ top: topPosition, height: cellHeight }}
@@ -245,7 +324,7 @@ export const BracketView: React.FC<BracketViewProps> = ({
                         <React.Fragment key={`connector-${round}-${idx}`}>
                           {/* Горизонтальная линия от 1-го матча */}
                           <div
-                            className={`absolute h-[2px] ${isHighlighted ? 'bg-indigo-500' : 'bg-gray-300'}`}
+                            className={`absolute h-[2px] connector-line ${isHighlighted ? 'bg-indigo-500' : 'bg-gray-300'}`}
                             style={{
                               top: topPos1,
                               left: 'calc(100% - 12px)',
@@ -254,7 +333,7 @@ export const BracketView: React.FC<BracketViewProps> = ({
                           />
                           {/* Горизонтальная линия от 2-го матча */}
                           <div
-                            className={`absolute h-[2px] ${isHighlighted ? 'bg-indigo-500' : 'bg-gray-300'}`}
+                            className={`absolute h-[2px] connector-line ${isHighlighted ? 'bg-indigo-500' : 'bg-gray-300'}`}
                             style={{
                               top: topPos2,
                               left: 'calc(100% - 12px)',
@@ -263,7 +342,7 @@ export const BracketView: React.FC<BracketViewProps> = ({
                           />
                           {/* Вертикальная соединительная линия */}
                           <div
-                            className={`absolute w-[2px] ${isHighlighted ? 'bg-indigo-500' : 'bg-gray-300'}`}
+                            className={`absolute w-[2px] connector-line ${isHighlighted ? 'bg-indigo-500' : 'bg-gray-300'}`}
                             style={{
                               top: Math.min(topPos1, topPos2),
                               left: 'calc(100% - 1px)',
@@ -272,7 +351,7 @@ export const BracketView: React.FC<BracketViewProps> = ({
                           />
                           {/* Горизонтальная линия к следующему раунду */}
                           <div
-                            className={`absolute h-[2px] ${isHighlighted ? 'bg-indigo-500' : 'bg-gray-300'}`}
+                            className={`absolute h-[2px] connector-line ${isHighlighted ? 'bg-indigo-500' : 'bg-gray-300'}`}
                             style={{
                               top: nextRoundTopPos,
                               left: '100%',

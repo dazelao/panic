@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthLayout from '@/components/AuthLayout';
 import { useParams, useRouter } from 'next/navigation';
 import { ApiService } from '@/config/apiService';
 import MatchCard from '@/components/MatchCard';
 import { BracketView } from '@/components/BracketView';
+import gsap from 'gsap';
 
 interface Match {
   id: number;
@@ -49,6 +50,7 @@ export default function TournamentBracketPage() {
   const { token } = useAuth();
   const params = useParams();
   const router = useRouter();
+  const compactViewRef = useRef<HTMLDivElement>(null);
 
   const calculateTotalRounds = (participantsCount: number): number => {
     // Расчет количества раундов на основе логарифма по основанию 2
@@ -286,6 +288,63 @@ export default function TournamentBracketPage() {
     return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7';
   };
 
+  // Animation for compact view
+  useEffect(() => {
+    // Only run animation when in compact mode and not loading
+    if (bracketMode !== 'compact' || loading || !compactViewRef.current) return;
+    
+    // Get all round cards
+    const roundCards = compactViewRef.current.querySelectorAll('.round-card');
+    // Get all match cards in compact view
+    const matchCards = compactViewRef.current.querySelectorAll('.match-item');
+    
+    // Hide all elements initially
+    gsap.set(roundCards, {
+      y: -40,
+      opacity: 0,
+      scale: 0.95
+    });
+    
+    gsap.set(matchCards, {
+      y: -30,
+      opacity: 0,
+      scale: 0.9
+    });
+    
+    // Create the animation timeline
+    const tl = gsap.timeline();
+    
+    // First animate the round cards
+    tl.to(roundCards, {
+      y: 0,
+      opacity: 1,
+      scale: 1,
+      stagger: 0.1,
+      duration: 0.4,
+      ease: "back.out(1.2)",
+      delay: 0.2
+    });
+    
+    // Then animate the match cards
+    tl.to(matchCards, {
+      y: 0,
+      opacity: 1,
+      scale: 1,
+      stagger: {
+        each: 0.05,
+        from: "start",
+        grid: "auto"
+      },
+      duration: 0.4,
+      ease: "back.out(1.2)"
+    }, "-=0.2");
+    
+    // Clean up on mode change
+    return () => {
+      tl.kill();
+    };
+  }, [bracketMode, loading, matches.length]);
+
   return (
     <AuthLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -329,13 +388,13 @@ export default function TournamentBracketPage() {
               </div>
             </div>
           ) : (
-            <div className={`grid ${getGridCols()} gap-6`}>
+            <div ref={compactViewRef} className={`grid ${getGridCols()} gap-6`}>
               {Array.from(groupedMatches.entries()).map(([round, roundMatches]) => {
                 const expectedMatches = getExpectedMatchesInRound(round, totalRounds);
                 const placeholderMatches = Array.from({ length: Math.max(0, expectedMatches - roundMatches.length) });
                 
                 return (
-                  <div key={round} className="bg-white rounded-lg shadow p-6">
+                  <div key={round} className="bg-white rounded-lg shadow p-6 round-card">
                     <h2 className="text-lg font-semibold text-indigo-600 mb-4">
                       {getRoundName(round, totalRounds)}
                     </h2>
@@ -345,28 +404,29 @@ export default function TournamentBracketPage() {
                           const isHighlighted = isMatchWithUser(match);
                           
                           return (
-                            <MatchCard
-                              key={match.id}
-                              teamOne={{
-                                id: match.userId1,
-                                name: getParticipantName(match.userId1),
-                                score: match.goalsUser1,
-                                isWinner: match.winnerId === match.userId1
-                              }}
-                              teamTwo={{
-                                id: match.userId2,
-                                name: getParticipantName(match.userId2),
-                                score: match.goalsUser2,
-                                isWinner: match.winnerId === match.userId2
-                              }}
-                              isHighlighted={isHighlighted}
-                              highlightedUserId={selectedUserId}
-                              onUserClick={handleUserClick}
-                            />
+                            <div key={match.id} className="match-item">
+                              <MatchCard
+                                teamOne={{
+                                  id: match.userId1,
+                                  name: getParticipantName(match.userId1),
+                                  score: match.goalsUser1,
+                                  isWinner: match.winnerId === match.userId1
+                                }}
+                                teamTwo={{
+                                  id: match.userId2,
+                                  name: getParticipantName(match.userId2),
+                                  score: match.goalsUser2,
+                                  isWinner: match.winnerId === match.userId2
+                                }}
+                                isHighlighted={isHighlighted}
+                                highlightedUserId={selectedUserId}
+                                onUserClick={handleUserClick}
+                              />
+                            </div>
                           );
                         })
                       ) : (
-                        <div className="text-center text-gray-500 italic text-sm">
+                        <div className="text-center text-gray-500 italic text-sm match-item">
                           Матчі ще не створені
                         </div>
                       )}
@@ -380,7 +440,7 @@ export default function TournamentBracketPage() {
                         return (
                           <div 
                             key={`placeholder-${round}-${matchIndex}`}
-                            className={`p-4 border border-dashed rounded-lg ${
+                            className={`p-4 border border-dashed rounded-lg match-item ${
                               isPotential ? 'bg-indigo-50 border-indigo-300' : 'border-gray-200'
                             }`}
                           >
