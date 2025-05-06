@@ -886,7 +886,10 @@ export default function SwissPage() {
                             {sortedResults.map((result, index) => (
                               <tr key={result.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                 <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                                  {result.username}
+                                  <span className="inline-flex items-center">
+                                    <span className="font-semibold text-indigo-600 mr-2">{index + 1}.</span>
+                                    {result.username}
+                                  </span>
                                 </td>
                                 <td className="px-3 py-2 whitespace-nowrap text-sm text-center text-gray-500">
                                   {result.wins}

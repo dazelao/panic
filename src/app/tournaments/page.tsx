@@ -4,7 +4,7 @@ import AuthLayout from '@/components/AuthLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ApiService } from '@/config/apiService';
+import { ApiService, apiRequest } from '@/config/apiService';
 
 interface Tournament {
   id: number;
@@ -74,6 +74,16 @@ export default function TournamentsPage() {
     name: '',
     description: '',
     maxParticipants: 16
+  });
+  const [showCreateFromSwissModal, setShowCreateFromSwissModal] = useState(false);
+  const [creatingFromSwissTournament, setCreatingFromSwissTournament] = useState(false);
+  const [createFromSwissForm, setCreateFromSwissForm] = useState({
+    swissTournamentId: 0,
+    minPosition: 1,
+    maxPosition: 15,
+    tournamentName: '',
+    tournamentDescription: '',
+    maxParticipants: 15
   });
   const [finishingTournament, setFinishingTournament] = useState(false);
   const [activeTab, setActiveTab] = useState<'active' | 'my'>('active');
@@ -208,6 +218,33 @@ export default function TournamentsPage() {
     }
   };
 
+  const handleContinueSwissTournament = async () => {
+    if (!selectedTournament || startingTournament || !token) return;
+
+    setStartingTournament(true);
+    try {
+      await apiRequest('/lchstate/tournament/start', 'POST', token, {
+        tournamentId: selectedTournament.id
+      });
+      
+      // Reload tournaments list to show updated tournaments
+      const data = await ApiService.tournaments.getAll(token);
+      setTournaments(data);
+      
+      // Find and update the selected tournament
+      const updatedTournament = data.find((t: Tournament) => t.id === selectedTournament.id);
+      if (updatedTournament) {
+        setSelectedTournament(updatedTournament);
+      } else {
+        setSelectedTournament(null);
+      }
+    } catch (error) {
+      console.error('Error continuing Swiss tournament:', error);
+    } finally {
+      setStartingTournament(false);
+    }
+  };
+
   const handleNextRound = async () => {
     if (!selectedTournament || generatingNextRound || !token) return;
 
@@ -250,6 +287,33 @@ export default function TournamentsPage() {
       console.error('Error creating tournament:', error);
     } finally {
       setCreatingTournament(false);
+    }
+  };
+
+  const handleCreateFromSwissTournament = async () => {
+    if (creatingFromSwissTournament || !token) return;
+
+    setCreatingFromSwissTournament(true);
+    try {
+      await apiRequest('/lchstate/tournament/create-from-swiss', 'POST', token, createFromSwissForm);
+      
+      // Reload tournaments list to show the new tournament
+      const data = await ApiService.tournaments.getAll(token);
+      setTournaments(data);
+      
+      setShowCreateFromSwissModal(false);
+      setCreateFromSwissForm({
+        swissTournamentId: 0,
+        minPosition: 1,
+        maxPosition: 15,
+        tournamentName: '',
+        tournamentDescription: '',
+        maxParticipants: 15
+      });
+    } catch (error) {
+      console.error('Error creating tournament from Swiss:', error);
+    } finally {
+      setCreatingFromSwissTournament(false);
     }
   };
 
@@ -456,12 +520,20 @@ export default function TournamentsPage() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Турніри</h1>
           {user?.role === 'ADMIN' && (
-            <button 
-              onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-            >
-              Створити турнір
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+              >
+                Створити турнір
+              </button>
+              <button 
+                onClick={() => setShowCreateFromSwissModal(true)}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                Створити з швейцарської сітки
+              </button>
+            </div>
           )}
         </div>
 
@@ -602,6 +674,135 @@ export default function TournamentsPage() {
           </div>
         )}
 
+        {/* Create Tournament from Swiss Modal */}
+        {showCreateFromSwissModal && (
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-semibold text-black">
+                    Створення турніру з швейцарської сітки
+                  </h3>
+                  <button
+                    onClick={() => setShowCreateFromSwissModal(false)}
+                    className="text-gray-400 hover:text-gray-500"
+                  >
+                    <span className="text-2xl">&times;</span>
+                  </button>
+                </div>
+              </div>
+              <div className="px-6 py-4">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      ID швейцарського турніру
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={createFromSwissForm.swissTournamentId}
+                      onChange={(e) => setCreateFromSwissForm(prev => ({ ...prev, swissTournamentId: parseInt(e.target.value) || 0 }))}
+                      className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
+                      placeholder="Введіть ID швейцарського турніру"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Мінімальна позиція
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={createFromSwissForm.minPosition}
+                        onChange={(e) => setCreateFromSwissForm(prev => ({ ...prev, minPosition: parseInt(e.target.value) || 1 }))}
+                        className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Максимальна позиція
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={createFromSwissForm.maxPosition}
+                        onChange={(e) => setCreateFromSwissForm(prev => ({ ...prev, maxPosition: parseInt(e.target.value) || 1 }))}
+                        className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Назва турніру
+                    </label>
+                    <input
+                      type="text"
+                      value={createFromSwissForm.tournamentName}
+                      onChange={(e) => setCreateFromSwissForm(prev => ({ ...prev, tournamentName: e.target.value }))}
+                      className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
+                      placeholder="Введіть назву турніру"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Опис турніру
+                    </label>
+                    <textarea
+                      value={createFromSwissForm.tournamentDescription}
+                      onChange={(e) => setCreateFromSwissForm(prev => ({ ...prev, tournamentDescription: e.target.value }))}
+                      rows={3}
+                      className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
+                      placeholder="Введіть опис турніру"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Максимальна кількість учасників
+                    </label>
+                    <input
+                      type="number"
+                      min="2"
+                      value={createFromSwissForm.maxParticipants}
+                      onChange={(e) => setCreateFromSwissForm(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) || 2 }))}
+                      className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+                <button
+                  onClick={() => setShowCreateFromSwissModal(false)}
+                  className="mr-3 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Скасувати
+                </button>
+                <button
+                  onClick={handleCreateFromSwissTournament}
+                  disabled={creatingFromSwissTournament || 
+                    !createFromSwissForm.tournamentName || 
+                    !createFromSwissForm.tournamentDescription || 
+                    createFromSwissForm.maxParticipants < 2 ||
+                    createFromSwissForm.swissTournamentId < 1
+                  }
+                  className={`px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                    (creatingFromSwissTournament || 
+                      !createFromSwissForm.tournamentName || 
+                      !createFromSwissForm.tournamentDescription || 
+                      createFromSwissForm.maxParticipants < 2 ||
+                      createFromSwissForm.swissTournamentId < 1
+                    ) 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : ''
+                  }`}
+                >
+                  {creatingFromSwissTournament ? 'Створення...' : 'Створити'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Modal */}
         {selectedTournament && (
           <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
@@ -690,6 +891,22 @@ export default function TournamentsPage() {
                               'Потрібно мінімум 2 учасника'
                             ) : (
                               'Запустити турнір'
+                            )}
+                          </button>
+                        )}
+
+                        {user?.role === 'ADMIN' && (
+                          <button
+                            onClick={handleContinueSwissTournament}
+                            disabled={startingTournament}
+                            className={`w-full mt-2 px-4 py-2 rounded-md text-sm font-medium transition-colors
+                              bg-green-600 text-white hover:bg-green-700
+                              ${startingTournament ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            {startingTournament ? (
+                              <span>Продовження турніру...</span>
+                            ) : (
+                              'Продовжити швейцарський турнір'
                             )}
                           </button>
                         )}
