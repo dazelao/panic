@@ -21,30 +21,21 @@ export const register = async (data: RegisterRequest): Promise<AuthResponse> => 
 };
 
 export const login = async (data: LoginRequest): Promise<AuthResponse> => {
-  console.log('Attempting login with:', { username: data.username, passwordLength: data.password.length });
-  
   try {
-    const response = await fetch(`${API_URL}/login`, {
+    const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
     });
-
-    console.log('Login response status:', response.status);
-    
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Login error details:', errorText);
-      throw new Error(`Login failed: ${response.status} ${errorText}`);
+      throw new Error(errorText);
     }
-
-    const result = await response.json();
-    console.log('Login successful, received token');
-    return result;
+    const { token } = await response.json();
+    return token;
   } catch (error) {
-    console.error('Login error:', error);
     throw error;
   }
 };

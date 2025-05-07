@@ -397,7 +397,9 @@ export default function LeagueDetailPage() {
         </div>
         <div className="pt-2"><b>Дата створення:</b> {new Date(league.createdDate).toLocaleString('uk-UA')}</div>
         <div className="pt-2">
-          <b>Кількість учасників:</b> {participants.length} / {league.maxParticipants}
+          <b>Кількість учасників:</b> {league.status === 'REGISTRATION' 
+            ? `${league.currentParticipants} / ${league.maxParticipants}`
+            : league.currentParticipants}
           {participantsLoading && <span className="ml-2 text-sm text-gray-500">(оновлення...)</span>}
         </div>
         {league.startDate && (

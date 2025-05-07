@@ -8,6 +8,7 @@ import { League, LeagueStatus } from '@/types/league';
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import LeagueDetailModal from '@/components/LeagueDetailModal';
 
 function LeagueStatusBadge({ status }: { status: string }) {
   const labels: Record<string, string> = {
@@ -57,6 +58,7 @@ export default function LeaguesPage() {
   const [statusFilter, setStatusFilter] = useState<LeagueStatus | undefined>();
   const [mounted, setMounted] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -65,14 +67,11 @@ export default function LeaguesPage() {
   const fetchLeagues = async () => {
     try {
       if (token) {
-        console.log('Fetching leagues with token:', token);
         const data = await getLeagues(token);
-        console.log('Received leagues data:', data);
         setLeagues(data);
         setError('');
       }
     } catch (err) {
-      console.error('Error fetching leagues:', err);
       setError('Не вдалося отримати ліги');
     } finally {
       setLoading(false);
@@ -104,28 +103,31 @@ export default function LeaguesPage() {
   return (
     <AuthLayout>
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Ліги</h1>
-          <div className="flex gap-4 items-center">
-            <select
-              value={statusFilter || ''}
-              onChange={(e) => setStatusFilter(e.target.value as LeagueStatus || undefined)}
-              className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-extrabold tracking-tight border-b border-slate-200 pb-2 bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Ligue
+          </h1>
+        </div>
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <select
+            value={statusFilter || ''}
+            onChange={(e) => setStatusFilter(e.target.value as LeagueStatus || undefined)}
+            className="min-w-[180px] px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm text-gray-900"
+          >
+            <option value="">Всі статуси</option>
+            <option value="REGISTRATION">Реєстрація</option>
+            <option value="ACTIVE">Активна</option>
+            <option value="FINISHED">Завершена</option>
+            <option value="CANCELED">Скасована</option>
+          </select>
+          {isAdmin && (
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
             >
-              <option value="">Всі статуси</option>
-              <option value="DRAFT">Реєстрація</option>
-              <option value="ACTIVE">Активна</option>
-              <option value="FINISHED">Завершена</option>
-            </select>
-            {isAdmin && (
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-              >
-                Створити лігу
-              </button>
-            )}
-          </div>
+              Створити лігу
+            </button>
+          )}
         </div>
 
         {error && (
@@ -140,26 +142,28 @@ export default function LeaguesPage() {
           <div className="bg-white shadow overflow-hidden sm:rounded-md">
             <ul className="divide-y divide-gray-200">
               {filteredAndSortedLeagues.map((league) => (
-                <li key={league.id}>
+                <li key={league.id} className="hover:bg-gray-50">
                   <div className="px-4 py-4 sm:px-6">
                     <div className="flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <h3 className="text-lg font-medium text-gray-900">{league.name}</h3>
+                      <div className="flex flex-col flex-grow">
+                        <div className="flex items-center">
+                          <h3 className="text-lg font-medium text-gray-900 mr-3">{league.name}</h3>
+                          <LeagueStatusBadge status={league.status} />
+                        </div>
                         <p className="mt-1 text-sm text-gray-500">{league.description}</p>
                       </div>
                       <div className="flex flex-col items-end gap-2">
-                        <LeagueStatusBadge status={league.status} />
-                        <span className="text-sm text-gray-500">
-                          {league.participantCount} / {league.maxParticipants} учасників
-                        </span>
-                        <div className="flex gap-2">
-                          <Link
-                            href={`/leagues/${league.id}`}
-                            className="px-3 py-1 rounded bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700 transition"
-                          >
-                            Детальніше
-                          </Link>
+                        <div className="text-sm text-gray-500">
+                          {league.status === 'REGISTRATION' 
+                            ? `${league.currentParticipants} / ${league.maxParticipants} учасників` 
+                            : `${league.currentParticipants} учасників`}
                         </div>
+                        <button
+                          onClick={() => setSelectedLeague(league)}
+                          className="px-3 py-1 rounded bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700 transition"
+                        >
+                          Детальніше
+                        </button>
                       </div>
                     </div>
                     <div className="mt-2 sm:flex sm:justify-between">
@@ -174,6 +178,15 @@ export default function LeaguesPage() {
               ))}
             </ul>
           </div>
+        )}
+
+        {selectedLeague && (
+          <LeagueDetailModal
+            league={selectedLeague}
+            onClose={() => setSelectedLeague(null)}
+            token={token || ''}
+            user={user}
+          />
         )}
 
         {isCreateModalOpen && token && (

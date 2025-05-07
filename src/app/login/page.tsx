@@ -17,6 +17,7 @@ export default function LoginPage() {
   const { setAuth } = useAuth();
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [loading, setLoading] = useState(false);
 
   const validateForm = (formData: FormData): boolean => {
     const errors: ValidationErrors = {};
@@ -50,24 +51,15 @@ export default function LoginPage() {
     };
 
     try {
+      setLoading(true);
+      setError('');
       const response = await login(data);
       setAuth(response);
       router.push('/profile');
     } catch (err: any) {
-      console.error('Login error:', err);
-      
-      // Определяем тип ошибки и выдаем понятное сообщение
-      if (err.message?.includes('401')) {
-        setError('Невірний логін або пароль');
-      } else if (err.message?.includes('429')) {
-        setError('Забагато спроб входу. Будь ласка, спробуйте пізніше');
-      } else if (err.message?.includes('503') || err.message?.includes('500')) {
-        setError('Сервер тимчасово недоступний. Спробуйте пізніше');
-      } else if (!navigator.onLine) {
-        setError('Відсутнє підключення до інтернету');
-      } else {
-        setError('Помилка входу. Спробуйте пізніше');
-      }
+      setError('Невірний логін або пароль');
+    } finally {
+      setLoading(false);
     }
   };
 

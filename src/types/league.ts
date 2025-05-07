@@ -1,4 +1,4 @@
-export type LeagueStatus = 'DRAFT' | 'ACTIVE' | 'FINISHED';
+export type LeagueStatus = 'DRAFT' | 'REGISTRATION' | 'ACTIVE' | 'FINISHED' | 'CANCELED';
 
 export interface CreateLeagueRequest {
   name: string;
@@ -23,6 +23,7 @@ export interface League {
   startDate: string;
   endDate: string;
   participantCount: number;
+  currentParticipants: number;
   maxParticipants: number;
   winnerAttribute?: string;
   winnerCount?: number;

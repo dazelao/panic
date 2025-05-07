@@ -172,8 +172,7 @@ export default function SwissPage() {
         const data = await response.json();
         setTournaments(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error('Failed to fetch tournaments:', err);
-        setError('Помилка при завантаженні турнірів');
+        setError('Не вдалося отримати турніри');
       } finally {
         setLoading(false);
       }
@@ -647,31 +646,33 @@ export default function SwissPage() {
   return (
     <AuthLayout>
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Швейцарські турніри</h1>
-          <div className="flex gap-4 items-center">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as TournamentStatus | '')}
-              className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-extrabold tracking-tight border-b border-slate-200 pb-2 bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Swiss system
+          </h1>
+        </div>
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as TournamentStatus | '')}
+            className="min-w-[180px] px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm text-gray-900"
+          >
+            <option value="">Всі статуси</option>
+            <option value="CREATED">Черновик</option>
+            <option value="REGISTRATION_OPEN">Реєстрація</option>
+            <option value="REGISTRATION_CLOSED">Реєстрація закрита</option>
+            <option value="IN_PROGRESS">Активний</option>
+            <option value="COMPLETED">Завершений</option>
+            <option value="CANCELLED">Скасований</option>
+          </select>
+          {user?.role === 'ADMIN' && (
+            <button
+              onClick={() => setCreateModalOpen(true)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
             >
-              <option value="">Всі статуси</option>
-              <option value="CREATED">Черновик</option>
-              <option value="REGISTRATION_OPEN">Реєстрація</option>
-              <option value="REGISTRATION_CLOSED">Реєстрація закрита</option>
-              <option value="IN_PROGRESS">Активний</option>
-              <option value="COMPLETED">Завершений</option>
-              <option value="CANCELLED">Скасований</option>
-            </select>
-            {user?.role === 'ADMIN' && (
-              <button
-                onClick={() => setCreateModalOpen(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-              >
-                Створити турнір
-              </button>
-            )}
-          </div>
+              Створити турнір
+            </button>
+          )}
         </div>
 
         {error && (
@@ -696,20 +697,24 @@ export default function SwissPage() {
                         </div>
                         <p className="mt-1 text-sm text-gray-500">{tournament.description}</p>
                       </div>
-                      <div className="flex items-center space-x-4">
+                      <div className="flex flex-col items-end gap-2">
                         <div className="flex flex-col items-end text-sm text-gray-500">
-                          <div>Учасники: {tournament.registeredPlayers}/{tournament.maxPlayers}</div>
+                          <div>Учасників: {tournament.registeredPlayers}/{tournament.maxPlayers}</div>
                           <div>Раунд: {tournament.currentRound}/{tournament.totalRounds}</div>
-                          {tournament.winnerUsername && (
-                            <div className="text-green-600">Переможець: {tournament.winnerUsername}</div>
-                          )}
                         </div>
                         <button
                           onClick={() => fetchTournamentDetails(tournament.id)}
-                          className="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-900 bg-white border border-indigo-600 rounded-md hover:bg-indigo-50"
+                          className="px-3 py-1 rounded bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700 transition"
                         >
                           Детальніше
                         </button>
+                      </div>
+                    </div>
+                    <div className="mt-2 sm:flex sm:justify-between">
+                      <div className="sm:flex">
+                        <p className="flex items-center text-sm text-gray-500">
+                          {tournament.startDate && `Дата початку: ${formatDate(tournament.startDate)}`}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -804,7 +809,7 @@ export default function SwissPage() {
                 <div className="space-y-4">
                   <p className="text-gray-600">{selectedTournament.description}</p>
                   
-                  <div className="border-t pt-4">
+                  <div className="bg-gray-50 p-4 rounded-lg mt-4">
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="font-medium text-gray-900">Інформація про турнір</h4>
                       {user?.role === 'ADMIN' && selectedTournament.status === 'CREATED' && (
@@ -836,16 +841,7 @@ export default function SwissPage() {
                     </div>
                   </div>
 
-                  {selectedTournament.winnerUsername && (
-                    <div className="border-t pt-4">
-                      <h4 className="font-medium text-green-600">
-                        Переможець: {selectedTournament.winnerUsername}
-                      </h4>
-                    </div>
-                  )}
-
-                  {/* Таблица результатов */}
-                  <div className="border-t pt-4">
+                  <div className="bg-blue-50 p-4 rounded-lg mt-4">
                     <h4 className="font-medium text-gray-900 mb-2">Результати</h4>
                     {resultsLoading ? (
                       <div className="text-center py-4">Завантаження результатів...</div>
@@ -853,8 +849,8 @@ export default function SwissPage() {
                       <div className="text-center py-4 text-gray-500">Результатів поки немає</div>
                     ) : (
                       <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50">
+                        <table className="min-w-full rounded-xl shadow-lg border border-blue-200 bg-blue-50">
+                          <thead className="bg-blue-100 border-b-2 border-blue-300">
                             <tr>
                               <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Гравець
@@ -882,9 +878,9 @@ export default function SwissPage() {
                               </th>
                             </tr>
                           </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
+                          <tbody className="bg-blue-50 divide-y divide-blue-100">
                             {sortedResults.map((result, index) => (
-                              <tr key={result.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                              <tr key={result.id} className="bg-blue-50">
                                 <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                                   <span className="inline-flex items-center">
                                     <span className="font-semibold text-indigo-600 mr-2">{index + 1}.</span>
@@ -932,11 +928,10 @@ export default function SwissPage() {
                           <div 
                             key={participant.id}
                             onClick={() => handleParticipantClick(participant)}
-                            className="p-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-900 text-center hover:bg-gray-100 transition-colors cursor-pointer relative"
+                            className="p-3 bg-gray-200 rounded-lg text-sm font-medium text-gray-900 text-center hover:bg-gray-300 transition-colors cursor-pointer relative"
                             title="Скопіювати telegram та EAID"
                           >
                             <div>{participant.userName}</div>
-                            <div className="text-xs text-gray-500">ID: {participant.userId}</div>
                             {copiedId === participant.id && (
                               <div 
                                 className="absolute top-0 right-0 mt-1 mr-1 px-2 py-0.5 bg-green-400/60 text-black text-xs font-semibold rounded"
@@ -951,7 +946,7 @@ export default function SwissPage() {
                     )}
                   </div>
 
-                  <div className="border-t pt-4">
+                  <div className="bg-purple-50 p-4 rounded-lg mt-4">
                     <div className="flex justify-between items-center mb-4">
                       <div className="flex space-x-4">
                         <button
@@ -1001,7 +996,7 @@ export default function SwissPage() {
                           {matches.map((match) => (
                             <div 
                               key={match.id} 
-                              className="bg-white p-4 rounded-lg shadow-sm border border-gray-200"
+                              className="bg-purple-100 p-4 rounded-lg shadow-sm border border-gray-200"
                             >
                               <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm text-gray-500">
@@ -1049,7 +1044,7 @@ export default function SwissPage() {
                           {myMatches.map((match) => (
                             <div 
                               key={match.id} 
-                              className="bg-white p-4 rounded-lg shadow-sm border border-gray-200"
+                              className="bg-purple-100 p-4 rounded-lg shadow-sm border border-gray-200"
                             >
                               <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm text-gray-500">
@@ -1387,7 +1382,7 @@ export default function SwissPage() {
                 {matches.map((match) => (
                   <div 
                     key={match.id}
-                    className="bg-white p-4 rounded-lg shadow-sm border border-gray-200"
+                    className="bg-purple-100 p-4 rounded-lg shadow-sm border border-gray-200"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-gray-500">

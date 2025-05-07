@@ -34,25 +34,23 @@ export default function AddParticipantModal({ open, onClose, leagueId, token, on
     }
   };
 
-  const fetchParticipants = () => {
-    ApiService.leagues.getParticipants(token, Number(leagueId))
-      .then(data => {
-        console.log('Fetched participants:', data);
-        setParticipants(data);
-      })
-      .catch(error => {
-        console.error('Error fetching participants:', error);
-        setParticipants([]);
-      });
+  const fetchParticipants = async () => {
+    try {
+      const data = await ApiService.leagues.getParticipants(token, Number(leagueId));
+      setParticipants(data);
+    } catch (error) {
+      setParticipants([]);
+      setError('Не вдалося отримати учасників');
+    }
   };
 
   useEffect(() => {
-    if (open) {
-      console.log('Modal opened with props:', { leagueId, token });
-      fetchUsers();
-      fetchParticipants();
-    }
-  }, [open]);
+    if (!leagueId || !token) return;
+    setLoading(true);
+    setError('');
+    fetchParticipants()
+      .finally(() => setLoading(false));
+  }, [leagueId, token]);
 
   const handleSubmit = async () => {
     if (!selectedUser) return;
@@ -71,14 +69,11 @@ export default function AddParticipantModal({ open, onClose, leagueId, token, on
   };
 
   const handleDelete = async (participant: Participant) => {
-    console.log('Deleting participant:', participant);
     setDeleteLoading(participant.id);
     try {
       await unregisterSelf(token, Number(leagueId), participant.id);
-      console.log('Successfully deleted participant');
       fetchParticipants();
     } catch (error) {
-      console.error('Error deleting participant:', error);
       setError('Помилка видалення учасника');
     } finally {
       setDeleteLoading(null);

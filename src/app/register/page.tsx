@@ -18,6 +18,7 @@ export default function RegisterPage() {
   const { setAuth } = useAuth();
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [loading, setLoading] = useState(false);
 
   const validateForm = (formData: FormData): boolean => {
     const errors: ValidationErrors = {};
@@ -63,18 +64,15 @@ export default function RegisterPage() {
     };
 
     try {
+      setLoading(true);
+      setError('');
       const response = await register(data);
       setAuth(response);
       router.push('/profile');
     } catch (err: any) {
-      console.error('Registration error:', err);
-      
-      if (!navigator.onLine) {
-        setError('Відсутнє підключення до інтернету');
-        return;
-      }
-
-      setError(err.message || 'Не вдалося зареєструватися. Спробуйте ще раз');
+      setError('Не вдалося зареєструватися');
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -13,6 +13,8 @@ export default function ProfilePage() {
     telegram: '',
     eaId: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -25,31 +27,16 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     try {
+      setLoading(true);
+      setError('');
       const token = localStorage.getItem('token') || '';
       await apiRequest('/auth/update', 'PUT', token, formData);
-      setIsEditing(false);
-      window.location.reload();
+      setSuccess('Профіль оновлено!');
     } catch (error: any) {
-      let errorMessage = 'Помилка при оновленні профілю';
-      
-      try {
-        // Пробуем получить сообщение из разных форматов ответа
-        if (error.response?.data?.message) {
-          errorMessage = error.response.data.message;
-        } else if (error.message && error.message.includes('{')) {
-          // Извлекаем JSON из строки ошибки
-          const jsonStr = error.message.substring(error.message.indexOf('{'));
-          const errorData = JSON.parse(jsonStr);
-          errorMessage = errorData.message || errorMessage;
-        }
-      } catch (e) {
-        console.error('Error parsing error message:', e);
-      }
-      
-      setError(errorMessage);
-      console.error('Error updating profile:', error);
+      setError('Не вдалося оновити профіль');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,7 +44,9 @@ export default function ProfilePage() {
     <AuthLayout>
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Профіль</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight border-b border-slate-200 pb-2 bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Profile
+          </h1>
           <button
             onClick={() => {
               setIsEditing(!isEditing);

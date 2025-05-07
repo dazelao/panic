@@ -96,6 +96,7 @@ export default function TournamentsPage() {
   const [showMatchHistory, setShowMatchHistory] = useState(false);
   const [allMatches, setAllMatches] = useState<Match[]>([]);
   const [loadingAllMatches, setLoadingAllMatches] = useState(false);
+  const [showCreateTypeModal, setShowCreateTypeModal] = useState(false);
   const { token, user } = useAuth();
   const router = useRouter();
 
@@ -137,7 +138,7 @@ export default function TournamentsPage() {
       const data = await ApiService.users.getAll(token);
       setAllUsers(data);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      // setError('Не вдалося отримати користувачів');
     } finally {
       setLoadingUsers(false);
     }
@@ -153,7 +154,7 @@ export default function TournamentsPage() {
       const data = await ApiService.tournaments.getParticipants(token, selectedTournament.id);
       setParticipants(data);
     } catch (error) {
-      console.error('Error adding participant:', error);
+      // setError('Не вдалося добавити учасника');
     }
   };
 
@@ -164,7 +165,7 @@ export default function TournamentsPage() {
       await ApiService.tournaments.removeParticipant(token, selectedTournament.id, userId);
       setParticipants(prev => prev.filter(p => p.id !== userId));
     } catch (error) {
-      console.error('Error removing participant:', error);
+      // setError('Не вдалося удалить участника');
     }
   };
 
@@ -188,7 +189,7 @@ export default function TournamentsPage() {
       const data = await ApiService.tournaments.getParticipants(token, selectedTournament.id);
       setParticipants(data);
     } catch (error) {
-      console.error('Error during registration:', error);
+      // setError('Не вдалося зареєструватися');
     } finally {
       setRegistering(false);
     }
@@ -212,7 +213,7 @@ export default function TournamentsPage() {
       ));
       setSelectedTournament(updatedTournament);
     } catch (error) {
-      console.error('Error starting tournament:', error);
+      // setError('Не вдалося запустити турнір');
     } finally {
       setStartingTournament(false);
     }
@@ -239,7 +240,7 @@ export default function TournamentsPage() {
         setSelectedTournament(null);
       }
     } catch (error) {
-      console.error('Error continuing Swiss tournament:', error);
+      // setError('Не вдалося продовжити швейцарський турнір');
     } finally {
       setStartingTournament(false);
     }
@@ -264,7 +265,7 @@ export default function TournamentsPage() {
       const activeOnes = matchesData.filter((match: Match) => match.matchStatus !== 'завершен');
       setActiveMatches(activeOnes);
     } catch (error) {
-      console.error('Error generating next round:', error);
+      // setError('Не вдалося сгенерировать следующий раунд');
     } finally {
       setGeneratingNextRound(false);
     }
@@ -284,7 +285,7 @@ export default function TournamentsPage() {
         maxParticipants: 16
       });
     } catch (error) {
-      console.error('Error creating tournament:', error);
+      // setError('Не вдалося створити турнір');
     } finally {
       setCreatingTournament(false);
     }
@@ -311,7 +312,7 @@ export default function TournamentsPage() {
         maxParticipants: 15
       });
     } catch (error) {
-      console.error('Error creating tournament from Swiss:', error);
+      // setError('Не вдалося створити турнір з швейцарської сітки');
     } finally {
       setCreatingFromSwissTournament(false);
     }
@@ -328,7 +329,7 @@ export default function TournamentsPage() {
       ));
       setSelectedTournament(updatedTournament);
     } catch (error) {
-      console.error('Error finishing tournament:', error);
+      // setError('Не вдалося завершити турнір');
     } finally {
       setFinishingTournament(false);
     }
@@ -339,7 +340,7 @@ export default function TournamentsPage() {
     
     // Проверка на равный счет
     if (matchResult.goalsUser1 === matchResult.goalsUser2) {
-      alert('Рахунок не може бути рівним. Повинен бути переможець.');
+      // setError('Рахунок не може бути рівним. Повинен бути переможець.');
       return;
     }
 
@@ -363,19 +364,16 @@ export default function TournamentsPage() {
       setUpdatingMatch(null);
       setMatchResult({ goalsUser1: 0, goalsUser2: 0 });
     } catch (error) {
-      console.error('Error updating match result:', error);
+      // setError('Не вдалося обновити результат матча');
     }
   };
 
   const getMyMatches = () => {
     if (!user) return [];
-    console.log('Current user ID:', user.id);
-    console.log('All matches:', matches);
     const myMatches = matches.filter(match => 
       (match.userId1 === user.id || match.userId2 === user.id) && 
       match.matchStatus !== 'завершен'
     );
-    console.log('My filtered matches:', myMatches);
     return myMatches;
   };
 
@@ -387,7 +385,7 @@ export default function TournamentsPage() {
       const data = await ApiService.matches.getTournamentMatches(token, selectedTournament.id);
       setAllMatches(data);
     } catch (error) {
-      console.error('Error fetching all matches:', error);
+      // setError('Не вдалося отримати всі матчі');
     } finally {
       setLoadingAllMatches(false);
     }
@@ -400,7 +398,7 @@ export default function TournamentsPage() {
         const data = await ApiService.tournaments.getAll(token);
         setTournaments(data);
       } catch (error) {
-        console.error('Error fetching tournaments:', error);
+        // setError('Не вдалося отримати турніри');
       } finally {
         setLoading(false);
       }
@@ -420,7 +418,7 @@ export default function TournamentsPage() {
         const data = await ApiService.tournaments.getParticipants(token, selectedTournament.id);
         setParticipants(data);
       } catch (error) {
-        console.error('Error fetching participants:', error);
+        // setError('Не вдалося отримати учасників');
       } finally {
         setLoadingParticipants(false);
       }
@@ -446,7 +444,7 @@ export default function TournamentsPage() {
         const activeOnes = data.filter((match: Match) => match.matchStatus !== 'завершен');
         setActiveMatches(activeOnes);
       } catch (error) {
-        console.error('Error fetching matches:', error);
+        // setError('Не вдалося отримати матчі');
       } finally {
         setLoadingMatches(false);
       }
@@ -517,32 +515,16 @@ export default function TournamentsPage() {
   return (
     <AuthLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Турніри</h1>
-          {user?.role === 'ADMIN' && (
-            <div className="flex gap-2">
-              <button 
-                onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-              >
-                Створити турнір
-              </button>
-              <button 
-                onClick={() => setShowCreateFromSwissModal(true)}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-              >
-                Створити з швейцарської сітки
-              </button>
-            </div>
-          )}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-extrabold tracking-tight border-b border-slate-200 pb-2 bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Single elimination
+          </h1>
         </div>
-
-        {/* Фильтр по статусу */}
-        <div className="mb-6">
+        <div className="flex items-center justify-between gap-4 mb-6">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as Tournament['status'] | 'ALL')}
-            className="mt-1 block w-48 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black"
+            className="min-w-[180px] px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm text-black"
           >
             <option value="ALL" className="text-black">Всі турніри</option>
             <option value="DRAFT" className="text-black">Чернетка</option>
@@ -550,6 +532,14 @@ export default function TournamentsPage() {
             <option value="FINISHED" className="text-black">Завершено</option>
             <option value="CLOSED" className="text-black">Закрито</option>
           </select>
+          {user?.role === 'ADMIN' && (
+            <button 
+              onClick={() => setShowCreateTypeModal(true)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
+            >
+              Створити турнір
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -560,33 +550,40 @@ export default function TournamentsPage() {
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
             <ul className="divide-y divide-gray-200">
               {filteredAndSortedTournaments.map((tournament) => (
-                <li key={tournament.id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                        {tournament.name}
-                      </h2>
-                      <p className="text-gray-600 mb-4">{tournament.description}</p>
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-medium ${getStatusColor(tournament.status)}`}>
-                          {getStatusText(tournament.status)}
-                        </span>
-                        <span className="text-gray-500">
-                          Учасників: {tournament.participantsCount} / {tournament.maxParticipants}
-                        </span>
-                        {tournament.currentRound > 0 && (
-                          <span className="text-gray-500">
-                            Раунд: {tournament.currentRound}
+                <li key={tournament.id} className="hover:bg-gray-50">
+                  <div className="px-4 py-4 sm:px-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col flex-grow">
+                        <div className="flex items-center">
+                          <h3 className="text-lg font-medium text-gray-900 mr-3">{tournament.name}</h3>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(tournament.status)}`}>
+                            {getStatusText(tournament.status)}
                           </span>
-                        )}
+                        </div>
+                        <p className="mt-1 text-sm text-gray-500">{tournament.description}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="flex flex-col items-end text-sm text-gray-500">
+                          <div>Учасників: {tournament.participantsCount} / {tournament.maxParticipants}</div>
+                          {tournament.currentRound > 0 && (
+                            <div>Раунд: {tournament.currentRound}</div>
+                          )}
+                        </div>
+                        <button 
+                          onClick={() => setSelectedTournament(tournament)}
+                          className="px-3 py-1 rounded bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700 transition"
+                        >
+                          Детальніше
+                        </button>
                       </div>
                     </div>
-                    <button 
-                      onClick={() => setSelectedTournament(tournament)}
-                      className="ml-4 px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      Деталі
-                    </button>
+                    <div className="mt-2 sm:flex sm:justify-between">
+                      <div className="sm:flex">
+                        <p className="flex items-center text-sm text-gray-500">
+                          {tournament.startDate && `Дата початку: ${formatDate(tournament.startDate)}`}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </li>
               ))}
@@ -594,9 +591,46 @@ export default function TournamentsPage() {
           </div>
         )}
 
+        {/* Create Tournament Type Modal */}
+        {showCreateTypeModal && (
+          <div className="fixed inset-0 bg-[rgba(30,41,59,0.5)] flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-sm w-full">
+              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 className="text-xl font-semibold text-black">Виберіть тип турніру</h3>
+                <button
+                  onClick={() => setShowCreateTypeModal(false)}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  <span className="text-2xl">&times;</span>
+                </button>
+              </div>
+              <div className="px-6 py-6 flex flex-col gap-4">
+                <button
+                  onClick={() => {
+                    setShowCreateTypeModal(false);
+                    setShowCreateModal(true);
+                  }}
+                  className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-lg font-medium"
+                >
+                  Стандартний турнір
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCreateTypeModal(false);
+                    setShowCreateFromSwissModal(true);
+                  }}
+                  className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-lg font-medium"
+                >
+                  Продовження швейцарки
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Create Tournament Modal */}
         {showCreateModal && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-[rgba(30,41,59,0.5)] flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
               <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
@@ -676,7 +710,7 @@ export default function TournamentsPage() {
 
         {/* Create Tournament from Swiss Modal */}
         {showCreateFromSwissModal && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-[rgba(30,41,59,0.5)] flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
               <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
@@ -805,19 +839,19 @@ export default function TournamentsPage() {
 
         {/* Modal */}
         {selectedTournament && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+          <div
+            className="fixed inset-0 bg-[rgba(30,41,59,0.5)] flex items-center justify-center p-4"
+            onClick={() => setSelectedTournament(null)}
+          >
+            <div
+              className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col"
+              onClick={e => e.stopPropagation()}
+            >
               <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-semibold text-black">
                     {selectedTournament.name}
                   </h3>
-                  <button
-                    onClick={() => setSelectedTournament(null)}
-                    className="text-gray-400 hover:text-gray-500"
-                  >
-                    <span className="text-2xl">&times;</span>
-                  </button>
                 </div>
               </div>
               <div className="overflow-y-auto flex-1">
@@ -1250,7 +1284,7 @@ export default function TournamentsPage() {
 
               {/* Match History Modal */}
               {showMatchHistory && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-[rgba(30,41,59,0.5)] flex items-center justify-center p-4 z-50">
                   <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
                     <div className="px-6 py-4 border-b border-gray-200">
                       <div className="flex items-center justify-between">
@@ -1407,7 +1441,7 @@ export default function TournamentsPage() {
 
         {/* Participant Management Modal */}
         {showParticipantManager && user?.role === 'ADMIN' && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-[rgba(30,41,59,0.5)] flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
               <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0">
                 <div className="flex items-center justify-between">

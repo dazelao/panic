@@ -59,15 +59,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setToken(auth.token);
       try {
-        const profile = await getProfile(auth.token);
-        setUser(profile);
+        setIsLoading(true);
+        const userProfile = await getProfile(auth.token);
+        setUser(userProfile);
       } catch (err) {
-        console.error('Failed to fetch user profile:', err);
-        setUser({
-          id: auth.id,
-          username: auth.username,
-          role: auth.role,
-        });
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
     } else {
       logout();

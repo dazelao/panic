@@ -41,7 +41,7 @@ export default function CreateLeagueModal({ token, onClose, onSuccess }: CreateL
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-[rgba(30,41,59,0.5)] flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg max-w-2xl w-full p-6 shadow-2xl shadow-black">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-900">Створити нову лігу</h2>

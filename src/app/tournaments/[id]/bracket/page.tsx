@@ -51,6 +51,7 @@ export default function TournamentBracketPage() {
   const params = useParams();
   const router = useRouter();
   const compactViewRef = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState('');
 
   const calculateTotalRounds = (participantsCount: number): number => {
     // Расчет количества раундов на основе логарифма по основанию 2
@@ -244,8 +245,9 @@ export default function TournamentBracketPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
+        setLoading(true);
+        setError('');
         if (!token) return;
 
         const [tournament, matchesData, participantsData] = await Promise.all([
@@ -266,7 +268,7 @@ export default function TournamentBracketPage() {
         const calculatedPotentialMatches = calculatePotentialMatches(matchesData);
         setPotentialMatches(calculatedPotentialMatches);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        setError('Не вдалося отримати дані сітки');
       } finally {
         setLoading(false);
       }
