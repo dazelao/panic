@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 import { Dialog, DialogTitle, DialogContent, Snackbar } from '@mui/material';
 import { API_BASE_URL } from '@/config/api';
+import './swiss.css';
 
 interface Tournament {
   id: number;
@@ -67,6 +68,8 @@ interface PlayerResult {
   goalsAgainst: number;
   goalDifference: number;
   place: number | null;
+  buchholzScore: number;
+  medianBuchholzScore: number;
 }
 
 type TournamentStatus = 'CREATED' | 'REGISTRATION_OPEN' | 'REGISTRATION_CLOSED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
@@ -238,6 +241,7 @@ export default function SwissPage() {
         }
       });
       if (!resultsResponse.ok) throw new Error('Failed to fetch results');
+      
       const resultsData = await resultsResponse.json();
       setResults(resultsData);
     } catch (err) {
@@ -591,7 +595,16 @@ export default function SwissPage() {
     if (a.points !== b.points) {
       return b.points - a.points;
     }
-    return b.goalDifference - a.goalDifference;
+    if (a.medianBuchholzScore !== b.medianBuchholzScore) {
+      return b.medianBuchholzScore - a.medianBuchholzScore;
+    }
+    if (a.buchholzScore !== b.buchholzScore) {
+      return b.buchholzScore - a.buchholzScore;
+    }
+    if (a.goalDifference !== b.goalDifference) {
+      return b.goalDifference - a.goalDifference;
+    }
+    return b.goalsAgainst - a.goalsAgainst;
   });
 
   const handleRegisterUser = async (userId: number) => {
@@ -642,6 +655,27 @@ export default function SwissPage() {
   const myMatches = matches.filter(match => 
     user && (match.player1Username === user.username || match.player2Username === user.username)
   );
+
+  // Обработчик для принудительного пересчета
+  const handleRecalculation = async (tournamentId: number) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/swiss/recalculation/tournaments/${tournamentId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to recalculate');
+
+      await fetchTournamentDetails(tournamentId);
+      setSnackbarMsg('Перерахунок успішно виконано');
+      setSnackbarOpen(true);
+    } catch (err) {
+      setSnackbarMsg('Помилка при виконанні перерахунку');
+      setSnackbarOpen(true);
+    }
+  };
 
   return (
     <AuthLayout>
@@ -757,12 +791,12 @@ export default function SwissPage() {
                         </button>
                       </div>
                     )}
-                    {user?.role === 'ADMIN' && selectedTournament.status === 'CREATED' && (
+                    {user?.role === 'ADMIN' && (selectedTournament.status === 'IN_PROGRESS' || selectedTournament.status === 'COMPLETED') && (
                       <button
-                        onClick={() => handleOpenRegistration(selectedTournament.id)}
-                        className="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+                        onClick={() => handleRecalculation(selectedTournament.id)}
+                        className="px-3 py-1 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
                       >
-                        Відкрити реєстрацію
+                        Примусовий перерахунок
                       </button>
                     )}
                     {selectedTournament.status === 'REGISTRATION_OPEN' && (
@@ -848,32 +882,40 @@ export default function SwissPage() {
                     ) : results.length === 0 ? (
                       <div className="text-center py-4 text-gray-500">Результатів поки немає</div>
                     ) : (
-                      <div className="overflow-x-auto">
+                      <div>
                         <table className="min-w-full rounded-xl shadow-lg border border-blue-200 bg-blue-50">
                           <thead className="bg-blue-100 border-b-2 border-blue-300">
                             <tr>
-                              <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th scope="col" className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Гравець
                               </th>
-                              <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 В
                               </th>
-                              <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 П
                               </th>
-                              <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Н
                               </th>
-                              <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 ЗМ
                               </th>
-                              <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 ПМ
                               </th>
-                              <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 РМ
                               </th>
-                              <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <span className="tooltip-container">
+                                  Б
+                                  <div className="tooltip">
+                                    Коефіцієнт Бухгольца
+                                  </div>
+                                </span>
+                              </th>
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 О
                               </th>
                             </tr>
@@ -881,31 +923,34 @@ export default function SwissPage() {
                           <tbody className="bg-blue-50 divide-y divide-blue-100">
                             {sortedResults.map((result, index) => (
                               <tr key={result.id} className="bg-blue-50">
-                                <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                                   <span className="inline-flex items-center">
                                     <span className="font-semibold text-indigo-600 mr-2">{index + 1}.</span>
                                     {result.username}
                                   </span>
                                 </td>
-                                <td className="px-3 py-2 whitespace-nowrap text-sm text-center text-gray-500">
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
                                   {result.wins}
                                 </td>
-                                <td className="px-3 py-2 whitespace-nowrap text-sm text-center text-gray-500">
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
                                   {result.losses}
                                 </td>
-                                <td className="px-3 py-2 whitespace-nowrap text-sm text-center text-gray-500">
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
                                   {result.draws}
                                 </td>
-                                <td className="px-3 py-2 whitespace-nowrap text-sm text-center text-gray-500">
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
                                   {result.goalsFor}
                                 </td>
-                                <td className="px-3 py-2 whitespace-nowrap text-sm text-center text-gray-500">
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
                                   {result.goalsAgainst}
                                 </td>
-                                <td className="px-3 py-2 whitespace-nowrap text-sm text-center text-gray-500">
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
                                   {result.goalDifference}
                                 </td>
-                                <td className="px-3 py-2 whitespace-nowrap text-sm text-center font-medium text-gray-900">
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
+                                  {result.buchholzScore}
+                                </td>
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center font-medium text-gray-900">
                                   {result.points}
                                 </td>
                               </tr>
