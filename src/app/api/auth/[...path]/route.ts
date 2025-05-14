@@ -10,7 +10,7 @@ export async function GET(
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/auth${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(`${API_URL}/api/${path ? path.join('/') : ''}`, {
     headers,
     method: request.method,
   });
@@ -29,7 +29,7 @@ export async function POST(
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/auth${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(`${API_URL}/api/${path ? path.join('/') : ''}`, {
     headers,
     method: request.method,
     body: request.body
@@ -49,7 +49,7 @@ export async function PUT(
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/auth${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(`${API_URL}/api/${path ? path.join('/') : ''}`, {
     headers,
     method: request.method,
     body: request.body
@@ -69,7 +69,7 @@ export async function DELETE(
   const headers = new Headers(request.headers);
   headers.delete('host');
 
-  const response = await fetch(`${API_URL}/api/auth${path ? `/${path.join('/')}` : ''}`, {
+  const response = await fetch(`${API_URL}/api/${path ? path.join('/') : ''}`, {
     headers,
     method: request.method
   });
