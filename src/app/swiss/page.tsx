@@ -602,7 +602,7 @@ export default function SwissPage() {
       return b.buchholzScore - a.buchholzScore;
     }
     if (a.goalDifference !== b.goalDifference) {
-      return b.goalDifference - a.goalDifference;
+    return b.goalDifference - a.goalDifference;
     }
     return b.goalsAgainst - a.goalsAgainst;
   });
