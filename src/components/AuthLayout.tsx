@@ -234,6 +234,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
     { name: 'Турніри', href: '/tournaments' },
     { name: 'Ліги', href: '/leagues' },
     { name: 'Швейцарка', href: '/swiss' },
+    { name: 'Регламент турніру', href: '/tommy' },
     ...(user?.role === 'ADMIN' ? [
       { name: 'Емулятор поля', href: '/field-simulator' },
       { 
