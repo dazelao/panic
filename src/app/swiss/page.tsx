@@ -156,6 +156,9 @@ export default function SwissPage() {
   const [resultsLoading, setResultsLoading] = useState(false);
   const [nextRoundLoading, setNextRoundLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<TournamentStatus | ''>('');
+  const [participantsCollapsed, setParticipantsCollapsed] = useState(true);
+  const [showAllParticipants, setShowAllParticipants] = useState(false);
+  const [participantSearch, setParticipantSearch] = useState('');
 
   useEffect(() => {
     const fetchTournaments = async () => {
@@ -677,6 +680,8 @@ export default function SwissPage() {
     }
   };
 
+  const filteredParticipants = participants.filter(p => p.userName.toLowerCase().includes(participantSearch.toLowerCase()));
+
   return (
     <AuthLayout>
       <div className="max-w-7xl mx-auto">
@@ -962,32 +967,69 @@ export default function SwissPage() {
                   </div>
 
                   <div className="border-t pt-4">
-                    <h4 className="font-medium text-gray-900 mb-2">Учасники турніру</h4>
-                    {participantsLoading ? (
-                      <div className="text-center py-4">Завантаження учасників...</div>
-                    ) : participants.length === 0 ? (
-                      <div className="text-center py-4 text-gray-500">Немає зареєстрованих учасників</div>
-                    ) : (
-                      <div className="grid grid-cols-3 gap-4">
-                        {participants.map((participant) => (
-                          <div 
-                            key={participant.id}
-                            onClick={() => handleParticipantClick(participant)}
-                            className="p-3 bg-gray-200 rounded-lg text-sm font-medium text-gray-900 text-center hover:bg-gray-300 transition-colors cursor-pointer relative"
-                            title="Скопіювати telegram та EAID"
-                          >
-                            <div>{participant.userName}</div>
-                            {copiedId === participant.id && (
-                              <div 
-                                className="absolute top-0 right-0 mt-1 mr-1 px-2 py-0.5 bg-green-400/60 text-black text-xs font-semibold rounded"
-                                style={{ animation: 'fadeout 2s forwards' }}
-                              >
-                                Скопійовано!
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-gray-900">Учасники турніру</h4>
+                      <button
+                        className={`flex items-center gap-1 text-sm px-3 py-1 border rounded-md transition bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100 focus:outline-none`}
+                        onClick={() => setParticipantsCollapsed((prev) => !prev)}
+                      >
+                        {participantsCollapsed ? 'Показати' : 'Сховати'}
+                        <span style={{ display: 'inline-block', transition: 'transform 0.2s', transform: participantsCollapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}>
+                          ▼
+                        </span>
+                      </button>
+                    </div>
+                    {!participantsCollapsed && (
+                      <>
+                        <input
+                          type="text"
+                          placeholder="Пошук учасника..."
+                          className="mb-3 w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                          value={participantSearch}
+                          onChange={e => {
+                            setParticipantSearch(e.target.value);
+                            setShowAllParticipants(false);
+                          }}
+                        />
+                        {participantsLoading ? (
+                          <div className="text-center py-4">Завантаження учасників...</div>
+                        ) : filteredParticipants.length === 0 ? (
+                          <div className="text-center py-4 text-gray-500">Немає зареєстрованих учасників</div>
+                        ) : (
+                          <>
+                            <div className="grid grid-cols-3 gap-4">
+                              {(showAllParticipants ? filteredParticipants : filteredParticipants.slice(0, 6)).map((participant) => (
+                                <div 
+                                  key={participant.id}
+                                  onClick={() => handleParticipantClick(participant)}
+                                  className="p-3 bg-gray-200 rounded-lg text-sm font-medium text-gray-900 text-center hover:bg-gray-300 transition-colors cursor-pointer relative"
+                                  title="Скопіювати telegram та EAID"
+                                >
+                                  <div>{participant.userName}</div>
+                                  {copiedId === participant.id && (
+                                    <div 
+                                      className="absolute top-0 right-0 mt-1 mr-1 px-2 py-0.5 bg-green-400/60 text-black text-xs font-semibold rounded"
+                                      style={{ animation: 'fadeout 2s forwards' }}
+                                    >
+                                      Скопійовано!
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            {filteredParticipants.length > 6 && !showAllParticipants && (
+                              <div className="flex justify-center mt-3">
+                                <button
+                                  className="px-4 py-1 text-sm border rounded-md bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100"
+                                  onClick={() => setShowAllParticipants(true)}
+                                >
+                                  Показати всіх
+                                </button>
                               </div>
                             )}
-                          </div>
-                        ))}
-                      </div>
+                          </>
+                        )}
+                      </>
                     )}
                   </div>
 
