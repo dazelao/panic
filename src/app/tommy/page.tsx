@@ -10,11 +10,11 @@ export default function TommyPage() {
   return (
     <AuthLayout>
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-50 to-slate-100 py-8">
-        <div className="bg-white/90 p-10 rounded-3xl shadow-2xl max-w-3xl w-full border border-slate-200 animate-fade-in">
-          <h1 className="text-5xl font-extrabold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 via-indigo-400 to-sky-500 drop-shadow-lg">Регламент турніру</h1>
+        <div className="bg-white/90 p-10 rounded-3xl shadow-2xl max-w-4xl w-full border border-slate-200 animate-fade-in">
+          <h1 className="text-4xl font-extrabold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 via-indigo-400 to-sky-500 drop-shadow-lg">Регламент турніру</h1>
 
           <div className="mb-8 text-lg">
-            <span className="font-bold text-indigo-700">Назва:</span> <span className="font-semibold text-gray-800">Donetsk1y FC25 league Season 1</span>
+            <div className="text-3xl font-extrabold text-indigo-800 text-center drop-shadow mb-2">Donetsk1y FC25 league Season 1</div>
           </div>
 
           <section className="mb-10">
@@ -26,7 +26,7 @@ export default function TommyPage() {
                 <li>Кількість учасників не обмежена</li>
                 <li>Усі матчі <span className="font-semibold text-indigo-700">BO1</span> (один поєдинок)</li>
                 <li>Нічийних результатів бути не може</li>
-                <li>Проходять <span className="font-semibold text-indigo-700">128 гравці</span> з найкращими показниками</li>
+                <li>Кількість учасників в сітках - залежить від кількості зареєстрованих</li>
                 <li className="font-bold">Порядок сортування:
                   <ol className="list-decimal pl-8 font-normal mt-1 space-y-0.5">
                     <li>Очки</li>
@@ -80,6 +80,7 @@ export default function TommyPage() {
                 <li>Вимоги по складу не розповсюджуються на воротарів (можна використовувати будь якого статусу або рейтингу)</li>
                 <li>Стадіон UT Champions</li>
                 <li>Газон Класичний</li>
+                <li className="font-bold text-emerald-700">Важливо - граємо на Next Gen на всіх платформа (Xbox Series S/X, PS5 або ПК)</li>
               </ul>
             </div>
           </section>
