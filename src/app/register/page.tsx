@@ -11,6 +11,7 @@ interface ValidationErrors {
   username?: string;
   password?: string;
   telegram?: string;
+  eaId?: string;
 }
 
 export default function RegisterPage() {
@@ -35,10 +36,18 @@ export default function RegisterPage() {
       errors.password = 'Пароль повинен містити мінімум 6 символів';
     }
 
-    // Telegram validation: must start with @
+    // Telegram validation: required, must start with @
     const telegram = formData.get('telegram') as string;
-    if (telegram && !telegram.startsWith('@')) {
+    if (!telegram) {
+      errors.telegram = 'Telegram обовʼязковий';
+    } else if (!telegram.startsWith('@')) {
       errors.telegram = 'Telegram повинен починатися з @';
+    }
+
+    // EA ID validation: required, not empty
+    const eaId = formData.get('eaId') as string;
+    if (!eaId) {
+      errors.eaId = 'EA ID обовʼязковий';
     }
 
     setValidationErrors(errors);
@@ -147,10 +156,11 @@ export default function RegisterPage() {
                 id="telegram"
                 name="telegram"
                 type="text"
+                required
                 className={`appearance-none rounded-lg relative block w-full px-3 py-2 border ${
                   validationErrors.telegram ? 'border-red-500' : 'border-gray-300'
                 } placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
-                placeholder="Telegram (необов'язково)"
+                placeholder="Telegram (обов'язково)"
                 onChange={() => {
                   if (validationErrors.telegram) {
                     setValidationErrors(prev => ({ ...prev, telegram: undefined }));
@@ -170,10 +180,21 @@ export default function RegisterPage() {
                 id="eaId"
                 name="eaId"
                 type="text"
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="EA ID (необов'язково)"
-                onChange={() => setError('')}
+                required
+                className={`appearance-none rounded-lg relative block w-full px-3 py-2 border ${
+                  validationErrors.eaId ? 'border-red-500' : 'border-gray-300'
+                } placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
+                placeholder="EA ID (обов'язково)"
+                onChange={() => {
+                  if (validationErrors.eaId) {
+                    setValidationErrors(prev => ({ ...prev, eaId: undefined }));
+                  }
+                  setError('');
+                }}
               />
+              {validationErrors.eaId && (
+                <p className="mt-1 text-sm text-red-500">{validationErrors.eaId}</p>
+              )}
             </div>
           </div>
 
