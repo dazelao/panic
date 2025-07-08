@@ -26,6 +26,7 @@ export default function ProfilePage() {
   }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('submit!');
     e.preventDefault();
     try {
       setLoading(true);
@@ -34,7 +35,19 @@ export default function ProfilePage() {
       await apiRequest('/auth/update', 'PUT', token, formData);
       setSuccess('Профіль оновлено!');
     } catch (error: any) {
-      setError('Не вдалося оновити профіль');
+      let msg = 'Не вдалося оновити профіль';
+      if (error && typeof error.message === 'string') {
+        if (error.message.includes('Telegram')) {
+          msg = 'Некоректний формат Telegram. Можна тільки латиниця, цифри, _ і максимум 32 символи.';
+        } else if (error.message.includes('EA ID')) {
+          msg = 'Некоректний формат EA ID. Можна тільки латиниця, цифри, _ , - і від 3 до 16 символів.';
+        } else if (error.message.includes('400')) {
+          msg = 'Дані не пройшли валідацію. Перевірте поля.';
+        } else {
+          msg = error.message;
+        }
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -63,6 +76,11 @@ export default function ProfilePage() {
               {error && (
                 <div className="p-4 bg-red-50 border-l-4 border-red-400 text-red-700">
                   {error}
+                </div>
+              )}
+              {success && (
+                <div className="p-4 bg-green-50 border-l-4 border-green-400 text-green-700 mb-2">
+                  {success}
                 </div>
               )}
               <div>
