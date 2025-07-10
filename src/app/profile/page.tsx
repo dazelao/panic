@@ -3,10 +3,11 @@
 import AuthLayout from '@/components/AuthLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/config/apiService';
+import { getProfile } from '@/api/auth';
 import { useEffect, useState } from 'react';
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, setAuth, token } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -33,6 +34,14 @@ export default function ProfilePage() {
       setError('');
       const token = localStorage.getItem('token') || '';
       await apiRequest('/auth/update', 'PUT', token, formData);
+      // Получить свежий профиль и обновить AuthContext
+      const freshProfile = await getProfile(token);
+      setAuth({
+        id: freshProfile.id,
+        token,
+        username: freshProfile.username,
+        role: freshProfile.role,
+      });
       setSuccess('Профіль оновлено!');
     } catch (error: any) {
       let msg = 'Не вдалося оновити профіль';
