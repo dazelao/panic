@@ -137,13 +137,23 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <Link
             href="/register"
             className="font-medium text-indigo-600 hover:text-indigo-500"
           >
             Немає акаунту? Зареєструватися
           </Link>
+          <div>
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSeMJhMhAZ5SplwnVOi-lKg26nOy0SxFTGqE452_KiTVxp1V9g/viewform"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-gray-500 hover:text-gray-700 underline"
+            >
+              Забули пароль? Форма відновлення доступу
+            </a>
+          </div>
         </div>
       </div>
     </div>

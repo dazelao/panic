@@ -138,6 +138,8 @@ export default function SwissPage() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMsg, setSnackbarMsg] = useState('');
   const [matches, setMatches] = useState<Match[]>([]);
+  const [expandedParticipant, setExpandedParticipant] = useState<number | null>(null);
+  const [participantDetails, setParticipantDetails] = useState<{[key: number]: User}>({});
   const [activeMatchesTab, setActiveMatchesTab] = useState<'current' | 'my'>('current');
   const [matchesLoading, setMatchesLoading] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -280,6 +282,11 @@ export default function SwissPage() {
   };
 
   const handleParticipantClick = async (participant: Participant) => {
+    if (expandedParticipant === participant.id) {
+      setExpandedParticipant(null);
+      return;
+    }
+
     try {
       const response = await fetch(`${API_BASE_URL}/users/${participant.userId}`, {
         headers: {
@@ -292,15 +299,46 @@ export default function SwissPage() {
       }
 
       const userData = await response.json();
-
-      const text = `eaId: ${userData.eaId || '-'}\ntelegram: ${userData.telegram || '-'}`;
-
-      await navigator.clipboard.writeText(text);
-      setCopiedId(participant.id);
-      setTimeout(() => setCopiedId(null), 2000);
+      setParticipantDetails(prev => ({ ...prev, [participant.id]: userData }));
+      setExpandedParticipant(participant.id);
     } catch (error) {
       console.error('Error:', error);
       setSnackbarMsg('Помилка отримання даних користувача');
+      setSnackbarOpen(true);
+    }
+  };
+
+  const handleCopyField = async (text: string, participantId: number) => {
+    try {
+      // Modern clipboard API
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        // Fallback for older browsers and mobile devices
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          document.execCommand('copy');
+        } catch (err) {
+          console.error('Fallback copy failed:', err);
+        }
+        
+        document.body.removeChild(textArea);
+      }
+      
+      setCopiedId(participantId);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      // Show error message to user
+      setSnackbarMsg('Помилка копіювання. Спробуйте ще раз.');
       setSnackbarOpen(true);
     }
   };
@@ -1001,11 +1039,58 @@ export default function SwissPage() {
                               {(showAllParticipants ? filteredParticipants : filteredParticipants.slice(0, 6)).map((participant) => (
                                 <div 
                                   key={participant.id}
-                                  onClick={() => handleParticipantClick(participant)}
                                   className="p-3 bg-gray-200 rounded-lg text-sm font-medium text-gray-900 text-center hover:bg-gray-300 transition-colors cursor-pointer relative"
-                                  title="Скопіювати telegram та EAID"
                                 >
-                                  <div>{participant.userName}</div>
+                                  <div 
+                                    onClick={() => handleParticipantClick(participant)}
+                                    className="cursor-pointer"
+                                  >
+                                    {participant.userName}
+                                  </div>
+                                  
+                                  {expandedParticipant === participant.id && participantDetails[participant.id] && (
+                                    <div className="mt-3 space-y-2 text-left">
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs text-gray-600">EA ID:</span>
+                                        <div className="flex items-center gap-1">
+                                          <span className={`text-xs font-medium ${!participantDetails[participant.id].eaId ? 'text-gray-400 italic' : ''}`}>
+                                            {participantDetails[participant.id].eaId || 'Учасник не зазначив EA ID'}
+                                          </span>
+                                          {participantDetails[participant.id].eaId && (
+                                            <button
+                                              onClick={() => handleCopyField(participantDetails[participant.id].eaId || '', participant.id)}
+                                              className="p-1 text-gray-400 hover:text-gray-600"
+                                              title="Скопіювати EA ID"
+                                            >
+                                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                              </svg>
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs text-gray-600">Telegram:</span>
+                                        <div className="flex items-center gap-1">
+                                          <span className={`text-xs font-medium ${!participantDetails[participant.id].telegram ? 'text-gray-400 italic' : ''}`}>
+                                            {participantDetails[participant.id].telegram || 'Учасник не зазначив Telegram'}
+                                          </span>
+                                          {participantDetails[participant.id].telegram && (
+                                            <button
+                                              onClick={() => handleCopyField(participantDetails[participant.id].telegram || '', participant.id)}
+                                              className="p-1 text-gray-400 hover:text-gray-600"
+                                              title="Скопіювати Telegram"
+                                            >
+                                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                              </svg>
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
                                   {copiedId === participant.id && (
                                     <div 
                                       className="absolute top-0 right-0 mt-1 mr-1 px-2 py-0.5 bg-green-400/60 text-black text-xs font-semibold rounded"
