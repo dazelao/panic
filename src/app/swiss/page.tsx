@@ -141,7 +141,6 @@ export default function SwissPage() {
   const [expandedParticipant, setExpandedParticipant] = useState<number | null>(null);
   const [participantDetails, setParticipantDetails] = useState<{[key: number]: User}>({});
   const [activeMatchesTab, setActiveMatchesTab] = useState<'current' | 'my'>('my');
-  const [matchesExpanded, setMatchesExpanded] = useState(false);
   const [matchesLoading, setMatchesLoading] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
@@ -1123,42 +1122,22 @@ export default function SwissPage() {
                     <div className="flex justify-between items-center mb-4">
                       <div className="flex items-center space-x-4">
                         <button
-                          onClick={() => {
-                            setActiveMatchesTab('my');
-                            setMatchesExpanded(true);
-                          }}
-                          className={`px-3 py-1 text-sm font-medium rounded-md ${
-                            activeMatchesTab === 'my'
-                              ? 'bg-indigo-100 text-indigo-700'
-                              : 'text-gray-500 hover:text-gray-700'
-                          }`}
+                          onClick={() => setActiveMatchesTab('my')}
+                          className={`px-3 py-1 text-sm font-medium rounded-md ${activeMatchesTab === 'my' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:text-gray-700'}`}
                         >
                           Мої матчі
                         </button>
                         <button
                           onClick={() => {
                             setActiveMatchesTab('current');
-                            setMatchesExpanded(true);
                             selectedTournament && fetchTournamentDetails(selectedTournament.id);
                           }}
-                          className={`px-3 py-1 text-sm font-medium rounded-md ${
-                            activeMatchesTab === 'current'
-                              ? 'bg-indigo-100 text-indigo-700'
-                              : 'text-gray-500 hover:text-gray-700'
-                          }`}
+                          className={`px-3 py-1 text-sm font-medium rounded-md ${activeMatchesTab === 'current' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:text-gray-700'}`}
                         >
                           Поточні матчі
                         </button>
-                        {matchesExpanded && (
-                          <button
-                            onClick={() => setMatchesExpanded(false)}
-                            className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700"
-                          >
-                            Сховати
-                          </button>
-                        )}
                       </div>
-                      {user?.role === 'ADMIN' && selectedTournament?.status === 'IN_PROGRESS' && allMatchesCompleted && matchesExpanded && (
+                      {user?.role === 'ADMIN' && selectedTournament?.status === 'IN_PROGRESS' && allMatchesCompleted && activeMatchesTab === 'current' && (
                         <button
                           onClick={handleNextRound}
                           disabled={nextRoundLoading}
@@ -1169,11 +1148,7 @@ export default function SwissPage() {
                       )}
                     </div>
 
-                    {!matchesExpanded ? (
-                      <div className="text-center py-4 text-gray-500">
-                        Натисніть кнопку вище, щоб переглянути матчі
-                      </div>
-                    ) : activeMatchesTab === 'current' ? (
+                    {activeMatchesTab === 'current' ? (
                       matchesLoading ? (
                         <div className="text-center py-4">Завантаження матчів...</div>
                       ) : matches.length === 0 ? (
