@@ -937,92 +937,6 @@ export default function SwissPage() {
                     </div>
                   </div>
 
-                  <div className="bg-blue-50 p-4 rounded-lg mt-4">
-                    <h4 className="font-medium text-gray-900 mb-2">Результати</h4>
-                    {resultsLoading ? (
-                      <div className="text-center py-4">Завантаження результатів...</div>
-                    ) : results.length === 0 ? (
-                      <div className="text-center py-4 text-gray-500">Результатів поки немає</div>
-                    ) : (
-                      <div>
-                        <table className="min-w-full rounded-xl shadow-lg border border-blue-200 bg-blue-50">
-                          <thead className="bg-blue-100 border-b-2 border-blue-300">
-                            <tr>
-                              <th scope="col" className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Гравець
-                              </th>
-                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                В
-                              </th>
-                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                П
-                              </th>
-                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Н
-                              </th>
-                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                ЗМ
-                              </th>
-                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                ПМ
-                              </th>
-                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                РМ
-                              </th>
-                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <span className="tooltip-container">
-                                  Б
-                                  <div className="tooltip">
-                                    Коефіцієнт Бухгольца
-                                  </div>
-                                </span>
-                              </th>
-                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                О
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-blue-50 divide-y divide-blue-100">
-                            {sortedResults.map((result, index) => (
-                              <tr key={result.id} className="bg-blue-50">
-                                <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                                  <span className="inline-flex items-center">
-                                    <span className="font-semibold text-indigo-600 mr-2">{index + 1}.</span>
-                                    {result.username}
-                                  </span>
-                                </td>
-                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
-                                  {result.wins}
-                                </td>
-                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
-                                  {result.losses}
-                                </td>
-                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
-                                  {result.draws}
-                                </td>
-                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
-                                  {result.goalsFor}
-                                </td>
-                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
-                                  {result.goalsAgainst}
-                                </td>
-                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
-                                  {result.goalDifference}
-                                </td>
-                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
-                                  {result.buchholzScore}
-                                </td>
-                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center font-medium text-gray-900">
-                                  {result.points}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-
                   <div className="border-t pt-4">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium text-gray-900">Учасники турніру</h4>
@@ -1066,15 +980,12 @@ export default function SwissPage() {
                                   >
                                     {participant.userName}
                                   </div>
-                                  
                                   {expandedParticipant === participant.id && participantDetails[participant.id] && (
                                     <div className="mt-3 space-y-2 text-left">
                                       <div className="flex items-center justify-between">
                                         <span className="text-xs text-gray-600">EA ID:</span>
                                         <div className="flex items-center gap-1">
-                                          <span className={`text-xs font-medium ${!participantDetails[participant.id].eaId ? 'text-gray-400 italic' : ''}`}>
-                                            {participantDetails[participant.id].eaId || 'Учасник не зазначив EA ID'}
-                                          </span>
+                                          <span className={`text-xs font-medium ${!participantDetails[participant.id].eaId ? 'text-gray-400 italic' : ''}`}>{participantDetails[participant.id].eaId || 'Учасник не зазначив EA ID'}</span>
                                           {participantDetails[participant.id].eaId && (
                                             <button
                                               onClick={() => handleCopyField(participantDetails[participant.id].eaId || '', participant.id)}
@@ -1091,9 +1002,7 @@ export default function SwissPage() {
                                       <div className="flex items-center justify-between">
                                         <span className="text-xs text-gray-600">Telegram:</span>
                                         <div className="flex items-center gap-1">
-                                          <span className={`text-xs font-medium ${!participantDetails[participant.id].telegram ? 'text-gray-400 italic' : ''}`}>
-                                            {participantDetails[participant.id].telegram || 'Учасник не зазначив Telegram'}
-                                          </span>
+                                          <span className={`text-xs font-medium ${!participantDetails[participant.id].telegram ? 'text-gray-400 italic' : ''}`}>{participantDetails[participant.id].telegram || 'Учасник не зазначив Telegram'}</span>
                                           {participantDetails[participant.id].telegram && (
                                             <button
                                               onClick={() => handleCopyField(participantDetails[participant.id].telegram || '', participant.id)}
@@ -1109,7 +1018,6 @@ export default function SwissPage() {
                                       </div>
                                     </div>
                                   )}
-                                  
                                   {copiedId === participant.id && (
                                     <div 
                                       className="absolute top-0 right-0 mt-1 mr-1 px-2 py-0.5 bg-green-400/60 text-black text-xs font-semibold rounded"
@@ -1321,6 +1229,92 @@ export default function SwissPage() {
                           ))}
                         </div>
                       )
+                    )}
+                  </div>
+
+                  <div className="bg-blue-50 p-4 rounded-lg mt-4">
+                    <h4 className="font-medium text-gray-900 mb-2">Результати</h4>
+                    {resultsLoading ? (
+                      <div className="text-center py-4">Завантаження результатів...</div>
+                    ) : results.length === 0 ? (
+                      <div className="text-center py-4 text-gray-500">Результатів поки немає</div>
+                    ) : (
+                      <div>
+                        <table className="min-w-full rounded-xl shadow-lg border border-blue-200 bg-blue-50">
+                          <thead className="bg-blue-100 border-b-2 border-blue-300">
+                            <tr>
+                              <th scope="col" className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Гравець
+                              </th>
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                В
+                              </th>
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                П
+                              </th>
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Н
+                              </th>
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                ЗМ
+                              </th>
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                ПМ
+                              </th>
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                РМ
+                              </th>
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <span className="tooltip-container">
+                                  Б
+                                  <div className="tooltip">
+                                    Коефіцієнт Бухгольца
+                                  </div>
+                                </span>
+                              </th>
+                              <th scope="col" className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                О
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-blue-50 divide-y divide-blue-100">
+                            {sortedResults.map((result, index) => (
+                              <tr key={result.id} className="bg-blue-50">
+                                <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  <span className="inline-flex items-center">
+                                    <span className="font-semibold text-indigo-600 mr-2">{index + 1}.</span>
+                                    {result.username}
+                                  </span>
+                                </td>
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
+                                  {result.wins}
+                                </td>
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
+                                  {result.losses}
+                                </td>
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
+                                  {result.draws}
+                                </td>
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
+                                  {result.goalsFor}
+                                </td>
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
+                                  {result.goalsAgainst}
+                                </td>
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
+                                  {result.goalDifference}
+                                </td>
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center text-gray-500">
+                                  {result.buchholzScore}
+                                </td>
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-center font-medium text-gray-900">
+                                  {result.points}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     )}
                   </div>
                 </div>
