@@ -161,6 +161,25 @@ export default function SwissPage() {
   const [participantsCollapsed, setParticipantsCollapsed] = useState(true);
   const [showAllParticipants, setShowAllParticipants] = useState(false);
   const [participantSearch, setParticipantSearch] = useState('');
+  const matchStatusLabels: Record<string, string> = {
+    SCHEDULED: 'Заплановано',
+    IN_PROGRESS: 'В процесі',
+    COMPLETED: 'Завершено',
+    CANCELED: 'Скасовано',
+  };
+  const matchStatusOrder = ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELED'];
+  const [matchStatusFilter, setMatchStatusFilter] = useState<string>('');
+
+  const matchStatusCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    matchStatusOrder.forEach(status => { counts[status] = 0; });
+    matches.forEach(m => { if (counts[m.status] !== undefined) counts[m.status]++; });
+    return counts;
+  }, [matches]);
+
+  const filteredMatches = matchStatusFilter
+    ? matches.filter(m => m.status === matchStatusFilter)
+    : matches;
 
   useEffect(() => {
     const fetchTournaments = async () => {
@@ -1538,10 +1557,29 @@ export default function SwissPage() {
               <div className="text-center py-4 text-gray-500">Матчів не знайдено</div>
             ) : (
               <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-2 mb-4">
+                  {matchStatusOrder.map(status => (
+                    <button
+                      key={status}
+                      onClick={() => setMatchStatusFilter(matchStatusFilter === status ? '' : status)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border transition
+                        ${matchStatusFilter === status ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-indigo-50'}`}
+                    >
+                      {matchStatusLabels[status]} <span className="ml-1 text-xs font-semibold">{matchStatusCounts[status]}</span>
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setMatchStatusFilter('')}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border transition
+                      ${matchStatusFilter === '' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-indigo-50'}`}
+                  >
+                    Всі <span className="ml-1 text-xs font-semibold">{matches.length}</span>
+                  </button>
+                </div>
                 {updateError && (
                   <div className="text-red-500 text-sm">{updateError}</div>
                 )}
-                {matches.map((match) => (
+                {filteredMatches.map((match) => (
                   <div 
                     key={match.id}
                     className="bg-purple-100 p-4 rounded-lg shadow-sm border border-gray-200"
