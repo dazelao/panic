@@ -580,14 +580,13 @@ export default function SwissPage() {
     }
   };
 
-  const handleUpdateMatch = async (matchId: number, player1Score: number, player2Score: number) => {
+  // Для пользователя: с проверкой статуса
+  const handleUpdateMatchUser = async (matchId: number, player1Score: number, player2Score: number) => {
     if (player1Score === player2Score) {
       setUpdateError('Нічия неможлива. Має бути переможець.');
       return;
     }
-
     try {
-      // 1. Получаем актуальные матчи
       if (!selectedTournament) return;
       const matchesResponse = await fetch(`${API_BASE_URL}/swiss/tournaments/${selectedTournament.id}/matches/current`, {
         headers: {
@@ -602,14 +601,12 @@ export default function SwissPage() {
         await fetchTournamentDetails(selectedTournament.id);
         return;
       }
-      // 2. Если статус уже COMPLETED, просто обновляем данные
       if (actualMatch.status === 'COMPLETED') {
         setUpdateError('Матч уже завершён. Данные обновлены.');
         await fetchTournamentDetails(selectedTournament.id);
         setEditingMatch(null);
         return;
       }
-      // 3. Если статус не изменился — отправляем результат
       const response = await fetch(`${API_BASE_URL}/swiss/matches/${matchId}/update`, {
         method: 'POST',
         headers: {
@@ -622,10 +619,38 @@ export default function SwissPage() {
           player2Score
         })
       });
-
       if (!response.ok) throw new Error('Failed to update match');
+      await fetchTournamentDetails(selectedTournament.id);
+      setEditingMatch(null);
+      setUpdateError('');
+      setSnackbarMsg('Результат матчу оновлено');
+      setSnackbarOpen(true);
+    } catch (err) {
+      setUpdateError('Помилка при оновленні результату');
+    }
+  };
 
-      // Обновляем список матчей и детали турнира
+  // Для админа: без проверки
+  const handleUpdateMatchAdmin = async (matchId: number, player1Score: number, player2Score: number) => {
+    if (player1Score === player2Score) {
+      setUpdateError('Нічия неможлива. Має бути переможець.');
+      return;
+    }
+    try {
+      if (!selectedTournament) return;
+      const response = await fetch(`${API_BASE_URL}/swiss/matches/${matchId}/update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          matchId,
+          player1Score,
+          player2Score
+        })
+      });
+      if (!response.ok) throw new Error('Failed to update match');
       await fetchTournamentDetails(selectedTournament.id);
       setEditingMatch(null);
       setUpdateError('');
@@ -1203,7 +1228,7 @@ export default function SwissPage() {
                                       onClick={() => {
                                         const player1Score = parseInt((document.getElementById(`player1Score-${match.id}`) as HTMLInputElement).value);
                                         const player2Score = parseInt((document.getElementById(`player2Score-${match.id}`) as HTMLInputElement).value);
-                                        handleUpdateMatch(match.id, player1Score, player2Score);
+                                        handleUpdateMatchUser(match.id, player1Score, player2Score);
                                       }}
                                       className="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
                                     >
@@ -1496,7 +1521,7 @@ export default function SwissPage() {
                 
                 {filteredUsers.length === 0 ? (
                   <div className="text-center py-4 text-gray-500">
-                    {searchQuery ? 'Користувачів не знайдено' : 'Немає доступних користувачів'}
+                    {searchQuery ? 'Користувачі не знайдено' : 'Немає доступних користувачів'}
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-[400px] overflow-y-auto">
@@ -1643,7 +1668,7 @@ export default function SwissPage() {
                             onClick={() => {
                               const player1Score = parseInt((document.getElementById(`player1Score-${match.id}`) as HTMLInputElement).value);
                               const player2Score = parseInt((document.getElementById(`player2Score-${match.id}`) as HTMLInputElement).value);
-                              handleUpdateMatch(match.id, player1Score, player2Score);
+                              handleUpdateMatchAdmin(match.id, player1Score, player2Score);
                             }}
                             className="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
                           >
