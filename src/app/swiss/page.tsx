@@ -581,13 +581,35 @@ export default function SwissPage() {
   };
 
   const handleUpdateMatch = async (matchId: number, player1Score: number, player2Score: number) => {
-    // Проверяем что счет не равный
     if (player1Score === player2Score) {
       setUpdateError('Нічия неможлива. Має бути переможець.');
       return;
     }
 
     try {
+      // 1. Получаем актуальные матчи
+      if (!selectedTournament) return;
+      const matchesResponse = await fetch(`${API_BASE_URL}/swiss/tournaments/${selectedTournament.id}/matches/current`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!matchesResponse.ok) throw new Error('Failed to fetch matches');
+      const matchesData = await matchesResponse.json();
+      const actualMatch = matchesData.find((m: any) => m.id === matchId);
+      if (!actualMatch) {
+        setUpdateError('Матч не найден');
+        await fetchTournamentDetails(selectedTournament.id);
+        return;
+      }
+      // 2. Если статус уже COMPLETED, просто обновляем данные
+      if (actualMatch.status === 'COMPLETED') {
+        setUpdateError('Матч уже завершён. Данные обновлены.');
+        await fetchTournamentDetails(selectedTournament.id);
+        setEditingMatch(null);
+        return;
+      }
+      // 3. Если статус не изменился — отправляем результат
       const response = await fetch(`${API_BASE_URL}/swiss/matches/${matchId}/update`, {
         method: 'POST',
         headers: {
@@ -603,12 +625,10 @@ export default function SwissPage() {
 
       if (!response.ok) throw new Error('Failed to update match');
 
-      // Обновляем список матчей
-      if (selectedTournament) {
-        await fetchTournamentDetails(selectedTournament.id);
-      }
+      // Обновляем список матчей и детали турнира
+      await fetchTournamentDetails(selectedTournament.id);
       setEditingMatch(null);
-      setUpdateError(''); // Очищаем ошибку при успешном сохранении
+      setUpdateError('');
       setSnackbarMsg('Результат матчу оновлено');
       setSnackbarOpen(true);
     } catch (err) {
