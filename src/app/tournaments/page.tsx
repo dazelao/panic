@@ -841,7 +841,12 @@ export default function TournamentsPage() {
         {selectedTournament && (
           <div
             className="fixed inset-0 bg-[rgba(30,41,59,0.5)] flex items-center justify-center p-4"
-            onClick={() => setSelectedTournament(null)}
+            onClick={(e) => {
+              // Закриваємо модальне вікно тільки якщо клік був на фоні, а не на контенті
+              if (e.target === e.currentTarget) {
+                setSelectedTournament(null);
+              }
+            }}
           >
             <div
               className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col"
@@ -1011,12 +1016,55 @@ export default function TournamentsPage() {
                         {participants.map(participant => (
                           <div 
                             key={participant.id}
-                            onClick={() => copyParticipantInfo(participant)}
+                            onClick={() => setCopiedParticipant(copiedParticipant === participant.id ? null : participant.id)}
                             className="px-3 py-2 bg-gray-50 rounded-md text-sm cursor-pointer transition-all duration-200 hover:bg-gray-100 text-black"
                           >
-                            {participant.username}
+                            <div className="font-medium">{participant.username}</div>
                             {copiedParticipant === participant.id && (
-                              <span className="text-xs text-green-600 ml-2">скопійовано</span>
+                              <div className="mt-1 text-xs text-gray-600">
+                                <div 
+                                  className="flex items-center justify-between hover:bg-gray-100 p-1 rounded cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigator.clipboard.writeText(participant.eaId);
+                                    // Показуємо фідбек для мобільних пристроїв
+                                    const textSpan = e.currentTarget.querySelector('span:first-child') as HTMLElement;
+                                    if (textSpan) {
+                                      const originalText = textSpan.textContent;
+                                      textSpan.textContent = 'Скопійовано!';
+                                      textSpan.style.color = '#059669';
+                                      setTimeout(() => {
+                                        textSpan.textContent = originalText;
+                                        textSpan.style.color = '';
+                                      }, 1000);
+                                    }
+                                  }}
+                                >
+                                  <span>EA ID: {participant.eaId}</span>
+                                  <span className="text-blue-500 ml-1">📋</span>
+                                </div>
+                                <div 
+                                  className="flex items-center justify-between hover:bg-gray-100 p-1 rounded cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigator.clipboard.writeText(participant.telegram);
+                                    // Показуємо фідбек для мобільних пристроїв
+                                    const textSpan = e.currentTarget.querySelector('span:first-child') as HTMLElement;
+                                    if (textSpan) {
+                                      const originalText = textSpan.textContent;
+                                      textSpan.textContent = 'Скопійовано!';
+                                      textSpan.style.color = '#059669';
+                                      setTimeout(() => {
+                                        textSpan.textContent = originalText;
+                                        textSpan.style.color = '';
+                                      }, 1000);
+                                    }
+                                  }}
+                                >
+                                  <span>Telegram: {participant.telegram}</span>
+                                  <span className="text-blue-500 ml-1">📋</span>
+                                </div>
+                              </div>
                             )}
                           </div>
                         ))}
