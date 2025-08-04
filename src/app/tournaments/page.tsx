@@ -86,7 +86,7 @@ export default function TournamentsPage() {
     maxParticipants: 15
   });
   const [finishingTournament, setFinishingTournament] = useState(false);
-  const [activeTab, setActiveTab] = useState<'active' | 'my'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'my'>('my');
   const [updatingMatch, setUpdatingMatch] = useState<number | null>(null);
   const [matchResult, setMatchResult] = useState({
     goalsUser1: 0,
@@ -97,6 +97,9 @@ export default function TournamentsPage() {
   const [allMatches, setAllMatches] = useState<Match[]>([]);
   const [loadingAllMatches, setLoadingAllMatches] = useState(false);
   const [showCreateTypeModal, setShowCreateTypeModal] = useState(false);
+  const [participantSearch, setParticipantSearch] = useState('');
+  const [showAllParticipants, setShowAllParticipants] = useState(false);
+  const [showAllParticipantsExpanded, setShowAllParticipantsExpanded] = useState(false);
   const { token, user } = useAuth();
   const router = useRouter();
 
@@ -104,6 +107,17 @@ export default function TournamentsPage() {
     const search = userSearch.toLowerCase();
     return allUsers.filter(u => u.username.toLowerCase().includes(search));
   }, [allUsers, userSearch]);
+
+  const filteredParticipants = useMemo(() => {
+    const search = participantSearch.toLowerCase();
+    return participants.filter(p => p.username.toLowerCase().includes(search));
+  }, [participants, participantSearch]);
+
+  // Скидаємо показ всіх учасників при зміні пошуку
+  useEffect(() => {
+    setShowAllParticipants(false);
+    setShowAllParticipantsExpanded(false);
+  }, [participantSearch]);
 
   const getStatusPriority = (status: Tournament['status']) => {
     const priorities = {
@@ -845,6 +859,9 @@ export default function TournamentsPage() {
               // Закриваємо модальне вікно тільки якщо клік був на фоні, а не на контенті
               if (e.target === e.currentTarget) {
                 setSelectedTournament(null);
+                setParticipantSearch('');
+                setShowAllParticipants(false);
+                setShowAllParticipantsExpanded(false);
               }
             }}
           >
@@ -994,26 +1011,52 @@ export default function TournamentsPage() {
                 <div className="border-t border-gray-200">
                   <div className="px-6 py-4">
                     <div className="flex justify-between items-center mb-4">
-                      <h4 className="text-lg font-medium text-black">Список учасників</h4>
-                      {user?.role === 'ADMIN' && selectedTournament?.status === 'DRAFT' && (
+                      <h4 className="text-lg font-medium text-black">Учасники турніру</h4>
+                      <div className="flex items-center space-x-2">
+                        {user?.role === 'ADMIN' && selectedTournament?.status === 'DRAFT' && (
+                          <button
+                            onClick={() => {
+                              setShowParticipantManager(true);
+                              fetchAllUsers();
+                            }}
+                            className="px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+                          >
+                            Управління учасниками
+                          </button>
+                        )}
                         <button
-                          onClick={() => {
-                            setShowParticipantManager(true);
-                            fetchAllUsers();
-                          }}
-                          className="px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+                          onClick={() => setShowAllParticipants(!showAllParticipants)}
+                          className="px-3 py-1 text-sm bg-blue-100 text-blue-600 border border-blue-300 rounded hover:bg-blue-200 transition-colors flex items-center"
                         >
-                          Управління учасниками
+                          {showAllParticipants ? 'Сховати' : 'Показати'}
+                          <span className={`ml-1 transition-transform ${showAllParticipants ? 'rotate-180' : ''}`}>
+                            ▼
+                          </span>
                         </button>
-                      )}
+                      </div>
                     </div>
+                    
+                    {showAllParticipants && (
+                      <>
+                        {/* Search participants */}
+                        <div className="mb-4">
+                          <input
+                            type="text"
+                            placeholder="Пошук учасника..."
+                            value={participantSearch}
+                            onChange={(e) => setParticipantSearch(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
+                          />
+                        </div>
+                    
                     {loadingParticipants ? (
                       <div className="text-center py-4">
                         <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-indigo-600 border-r-transparent"></div>
                       </div>
                     ) : participants.length > 0 ? (
-                      <div className="grid grid-cols-3 gap-2">
-                        {participants.map(participant => (
+                      <div>
+                        <div className="grid grid-cols-3 gap-2">
+                          {(showAllParticipantsExpanded ? filteredParticipants : filteredParticipants.slice(0, 6)).map(participant => (
                           <div 
                             key={participant.id}
                             onClick={() => setCopiedParticipant(copiedParticipant === participant.id ? null : participant.id)}
@@ -1068,11 +1111,25 @@ export default function TournamentsPage() {
                             )}
                           </div>
                         ))}
+                        </div>
+                        
+                        {filteredParticipants.length > 6 && !showAllParticipantsExpanded && (
+                          <div className="text-center mt-3">
+                            <button
+                              onClick={() => setShowAllParticipantsExpanded(true)}
+                              className="px-4 py-2 text-sm bg-blue-100 text-blue-600 border border-blue-300 rounded hover:bg-blue-200 transition-colors"
+                            >
+                              Показати всіх
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="text-sm text-black italic">
                         Немає учасників
                       </div>
+                    )}
+                      </>
                     )}
                   </div>
                 </div>
