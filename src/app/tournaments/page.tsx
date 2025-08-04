@@ -113,9 +113,8 @@ export default function TournamentsPage() {
     return participants.filter(p => p.username.toLowerCase().includes(search));
   }, [participants, participantSearch]);
 
-  // Скидаємо показ всіх учасників при зміні пошуку
+  // Скидаємо тільки розгорнутий стан при зміні пошуку
   useEffect(() => {
-    setShowAllParticipants(false);
     setShowAllParticipantsExpanded(false);
   }, [participantSearch]);
 
