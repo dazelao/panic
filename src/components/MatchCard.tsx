@@ -16,6 +16,9 @@ interface MatchCardProps {
   isHighlighted?: boolean;
   highlightedUserId?: number | null;
   onUserClick: (userId: number) => void;
+  compact?: boolean;
+  fontSize?: string;
+  padding?: string;
 }
 
 export const MatchCard: React.FC<MatchCardProps> = ({ 
@@ -23,7 +26,10 @@ export const MatchCard: React.FC<MatchCardProps> = ({
   teamTwo, 
   isHighlighted = false,
   highlightedUserId,
-  onUserClick
+  onUserClick,
+  compact = false,
+  fontSize = 'text-sm',
+  padding = 'p-3'
 }) => {
   return (
     <div 
@@ -35,7 +41,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
     >
       {/* Команда 1 */}
       <div 
-        className={`p-3 cursor-pointer ${
+        className={`${padding} cursor-pointer ${
           teamOne.isWinner
             ? 'border-l-4 border-green-500 bg-green-50' 
             : isHighlighted && teamOne.id === highlightedUserId
@@ -45,10 +51,10 @@ export const MatchCard: React.FC<MatchCardProps> = ({
         onClick={() => onUserClick(teamOne.id)}
       >
         <div className="flex justify-between items-center">
-          <div className="text-sm font-medium text-gray-900">
-            {teamOne.name}
+          <div className={`font-medium text-gray-900 ${fontSize} ${compact ? 'truncate' : ''}`} title={teamOne.name}>
+            {compact && teamOne.name.length > 10 ? `${teamOne.name.substring(0, 10)}...` : teamOne.name}
           </div>
-          <div className="text-sm font-semibold text-gray-700 ml-2">
+          <div className={`font-semibold text-gray-700 ml-2 ${fontSize}`}>
             {teamOne.score !== null ? teamOne.score : '-'}
           </div>
         </div>
@@ -56,7 +62,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
       
       {/* Команда 2 */}
       <div 
-        className={`p-3 border-t border-gray-200 cursor-pointer ${
+        className={`${padding} border-t border-gray-200 cursor-pointer ${
           teamTwo.isWinner
             ? 'border-l-4 border-green-500 bg-green-50' 
             : isHighlighted && teamTwo.id === highlightedUserId
@@ -66,10 +72,10 @@ export const MatchCard: React.FC<MatchCardProps> = ({
         onClick={() => onUserClick(teamTwo.id)}
       >
         <div className="flex justify-between items-center">
-          <div className="text-sm font-medium text-gray-900">
-            {teamTwo.name}
+          <div className={`font-medium text-gray-900 ${fontSize} ${compact ? 'truncate' : ''}`} title={teamTwo.name}>
+            {compact && teamTwo.name.length > 10 ? `${teamTwo.name.substring(0, 10)}...` : teamTwo.name}
           </div>
-          <div className="text-sm font-semibold text-gray-700 ml-2">
+          <div className={`font-semibold text-gray-700 ml-2 ${fontSize}`}>
             {teamTwo.score !== null ? teamTwo.score : '-'}
           </div>
         </div>

@@ -995,7 +995,7 @@ export default function TournamentsPage() {
                     {selectedTournament.status !== 'DRAFT' && (
                       <button
                         onClick={() => {
-                          router.push(`/tournaments/${selectedTournament.id}/bracket`);
+                          router.push(`/tournaments/${selectedTournament.id}/bracket/fullscreen`);
                           setSelectedTournament(null);
                         }}
                         className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
